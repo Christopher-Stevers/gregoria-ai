@@ -1,3 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  .bg-accent {
+    @apply bg-gradient-to-b from-[#15162c] to-[#2e026d];
+  }
+  .modal {
+    @apply border-white fixed right-0 top-12 flex min-h-[40px] flex-col gap-2 rounded-md  border border-2 bg-main px-4 py-2
+  }
+}

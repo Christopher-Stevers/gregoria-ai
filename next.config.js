@@ -5,6 +5,24 @@
 await import("./src/env.js");
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {
+    reactStrictMode: true,
+    images: {
+        domains: ["cdn.discordapp.com"],
+    },
+    async headers() {
+        return [
+        {
+            source: "/(.*)",
+            headers: [
+            {
+                key: "X-Frame-Options",
+                value: "SAMEORIGIN",
+            },
+            ],
+        },
+        ];
+    },
+};
 
 export default config;

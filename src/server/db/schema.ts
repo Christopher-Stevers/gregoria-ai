@@ -2,13 +2,15 @@ import { relations, sql } from "drizzle-orm";
 import {
   bigint,
   index,
-  int,
-  mysqlTableCreator,
+  pgTableCreator,
   primaryKey,
   text,
   timestamp,
   varchar,
-} from "drizzle-orm/mysql-core";
+  serial,
+  integer,
+  boolean,
+} from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
 /**
@@ -17,18 +19,20 @@ import { type AdapterAccount } from "next-auth/adapters";
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const createTable = mysqlTableCreator((name) => `gregoria-ai_${name}`);
+export const createTable = pgTableCreator((name) => `gregoria-ai_${name}`);
 
 export const posts = createTable(
   "post",
   {
-    id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
+    id: serial("id").primaryKey(),
     name: varchar("name", { length: 256 }),
     createdById: varchar("createdById", { length: 255 }).notNull(),
     createdAt: timestamp("created_at")
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    updatedAt: timestamp("updatedAt").onUpdateNow(),
+    updatedAt: timestamp("updatedAt")
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
   },
   (example) => ({
     createdByIdIdx: index("createdById_idx").on(example.createdById),
@@ -36,20 +40,52 @@ export const posts = createTable(
   }),
 );
 
+export const teams = createTable("team", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }),
+  plan: varchar("plan", { length: 255 }),
+  expires: timestamp("expires", { mode: "date" }),
+  active: boolean("active").default(false),
+});
+
+export const teamsToUsers = createTable("teamToUser", {
+  teamId: bigint("teamId", { mode: "number" })
+    .notNull()
+    .references(() => teams.id),
+  userId: varchar("userId", { length: 255 })
+    .notNull()
+    .references(() => users.id),
+  role: varchar("role", { length: 255 }).notNull(),
+});
+
+export const teamsRelations = relations(teams, ({ many }) => ({
+  users: many(users),
+}));
+
 export const users = createTable("user", {
   id: varchar("id", { length: 255 }).notNull().primaryKey(),
   name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 255 }).notNull(),
   emailVerified: timestamp("emailVerified", {
     mode: "date",
-    fsp: 3,
   }).default(sql`CURRENT_TIMESTAMP(3)`),
   image: varchar("image", { length: 255 }),
+});
+
+export const usersToTeams = createTable("userToTeam", {
+  userId: varchar("userId", { length: 255 })
+    .notNull()
+    .references(() => users.id),
+  teamId: bigint("teamId", { mode: "number" })
+    .notNull()
+    .references(() => teams.id),
+  role: varchar("role", { length: 255 }).notNull(),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   sessions: many(sessions),
+  teams: many(teams),
 }));
 
 export const accounts = createTable(
@@ -63,7 +99,7 @@ export const accounts = createTable(
     providerAccountId: varchar("providerAccountId", { length: 255 }).notNull(),
     refresh_token: text("refresh_token"),
     access_token: text("access_token"),
-    expires_at: int("expires_at"),
+    expires_at: integer("expires_at"),
     token_type: varchar("token_type", { length: 255 }),
     scope: varchar("scope", { length: 255 }),
     id_token: text("id_token"),
