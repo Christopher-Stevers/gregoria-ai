@@ -6,10 +6,9 @@ import { teams, teamsToUsers, users, usersToTeams } from "~/server/db/schema";
 
 export const teamRouter = createTRPCRouter({
   getUserTeams: protectedProcedure
-    .input(z.object({ text: z.string() }))
     .query(async ({ ctx: { db, session } }) => {
       const userId = session?.user?.id;
-      if (!userId) throw new Error("User not found");
+      if (!userId) if(!userId) return null
       const result = await db
         .select()
         .from(usersToTeams)

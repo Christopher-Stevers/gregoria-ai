@@ -26,17 +26,24 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const user = await getServerAuthSession();
-  const userTeams = await api.team.getUserTeams.query({
-    text: "greet",
-  });
-  const team = userTeams[0]?.team;
-  if (!team) return <TeamSignUp />;
+  const userTeams = await api.team.getUserTeams.query().catch(() => null);
+  const team = userTeams?.[0]?.team;
   return (
     <html lang="en">
       <body className={`font-sans ${inter.variable} bg-main text-text`}>
         <TRPCReactProvider>
           <NavBar />
-          <TeamProvider initialValue={team}>{children}</TeamProvider>
+          {!user ? (
+            <div>Landing page, please sign in</div>
+          ) : (
+            <div>
+              {team ? (
+                <TeamProvider initialValue={team}>{children}</TeamProvider>
+              ) : (
+                <TeamSignUp />
+              )}
+            </div>
+          )}
         </TRPCReactProvider>
       </body>
     </html>

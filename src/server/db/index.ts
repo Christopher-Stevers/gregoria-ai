@@ -1,6 +1,10 @@
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import {drizzle } from "drizzle-orm/node-postgres"
+import {Client} from "pg"
 import { env } from "~/env";
 
-const sql = neon<boolean, boolean>(env.DATABASE_URL);
-export const db = drizzle(sql);
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+const client =new Client({connectionString: env.DATABASE_URL});
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+await client.connect();
+// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+export const db = drizzle(client);

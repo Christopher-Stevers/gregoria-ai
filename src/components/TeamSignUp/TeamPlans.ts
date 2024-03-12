@@ -16,7 +16,7 @@ export const TeamPlans = [
   },
   {
     name: "Starter",
-    description: `Streamline your team{"'"}s workflow`,
+    description: `Streamline your team's workflow`,
     feature: ["15 users", "Unlimited projects"],
     price: 99,
     hasPrice: true,
