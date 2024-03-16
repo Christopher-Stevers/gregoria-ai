@@ -2,14 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
+
+
+
+
+*{outline:0px;
+  appearance:none;
+box-shadow:none}
+
 @layer base {
   .bg-accent {
-    @apply bg-gradient-to-b from-[#15162c] to-[#2e026d];
+    @apply bg-gradient-to-b from-[#35162c] to-[#2e026d];
   }
   .modal {
-    @apply border-white fixed right-0 top-12 flex min-h-[40px] flex-col gap-2 rounded-md  border border-2 bg-main px-4 py-2
+    @apply border-white fixed right-0 top-12 flex min-h-[40px] flex-col gap-2 rounded-md   border-2 bg-main px-4 py-2
   }
   .tab{
-    @apply ui-selected:bg-accent ui-selected:border-hot border-2 border-transparent text-text p-2
+    @apply ui-selected:bg-accent ui-selected:border-hot border-2 border-transparent border-b-0 -mb-0.5 pb-[10px] text-text p-2 focus-visible:outline-none outline-none
   }
 }

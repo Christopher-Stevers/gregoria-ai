@@ -31,7 +31,6 @@ export const StyledInput = ({
         value={value}
         onChange={(e) => setValue(e.target.value)}
       />
-      <button>+</button>
     </>
   );
 };
