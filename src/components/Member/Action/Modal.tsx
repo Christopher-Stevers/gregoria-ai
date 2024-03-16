@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 
-const AddAction = ({
+const Modal = ({
   name,
   setShowModal,
   showModal,
@@ -26,4 +25,4 @@ const AddAction = ({
   );
 };
 
-export default AddAction;
+export default Modal;

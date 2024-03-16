@@ -3,23 +3,17 @@
 import H3 from "~/components/base/h3";
 import { Tab } from "@headlessui/react";
 
-import Action from "./Action";
+import type { Step } from "./types";
+import Action from "../Action";
 
 const Step = ({
   step,
   canHaveParent,
+  parent,
 }: {
   canHaveParent: boolean;
-  step: {
-    name: string;
-    actions: (
-      | {
-          name: string;
-          statuses: { status: string }[];
-        }
-      | undefined
-    )[];
-  };
+  step: Step;
+  parent?: Step;
 }) => {
   return (
     <div key={step.name} className="bg-accent border-hot p-4">
@@ -45,7 +39,11 @@ const Step = ({
 
               return (
                 <Tab.Panel className={"border-2 border-hot"} key={action.name}>
-                  <Action action={action} canHaveParent={canHaveParent} />
+                  <Action
+                    parent={parent}
+                    action={action}
+                    canHaveParent={canHaveParent}
+                  />
                 </Tab.Panel>
               );
             })}
