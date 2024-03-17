@@ -8,7 +8,7 @@ const Member = () => {
     <div className=" flex flex-col gap-8">
       {funnel.map((step, index) => {
         const canHaveParent = index !== 0;
-        const parent = index === 0 ? {} : funnel[index - 1];
+        const parent = index === 0 ? {} : funnel[0];
         if (step?.actions === undefined) return null;
         return (
           <div key={step.name} className="bg-accent border-hot p-4">
