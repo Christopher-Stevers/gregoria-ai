@@ -1,5 +1,5 @@
-import { Step } from "~/components/Member/Step/types";
-import { Status } from "~/components/Member/Action/types";
+import { type Step } from "~/components/Member/Step/types";
+import { type Status } from "~/components/Member/Action/types";
 
 const ccStatuses = [
   { status: "initiated" },
@@ -155,7 +155,10 @@ export const getFunnelResults = (funnel: Funnel) => {
     name: "Outreach vs Discovery",
     cells: getStepVsStep(funnel, 0, 1),
   };
-
+const salesVsDiscovery = {
+    name: "Sales vs Discovery",
+    cells: getStepVsStep(funnel, 0, 2),
+  };
   const discoveryCalls = {
     name: "Discovery Calls",
     cells: funnelHeaders.map((elem) => {
@@ -216,6 +219,7 @@ export const getFunnelResults = (funnel: Funnel) => {
   const funnelRows = [
     totalOutreach,
     outVsDiscovery,
+    salesVsDiscovery,
     discoveryCalls,
     ...getStatusToProspectStages(funnel, 1),
 
