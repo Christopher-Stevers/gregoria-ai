@@ -1,25 +1,32 @@
 import { useState } from "react";
-import { Action } from "./types";
 import Input from "~/components/base/input";
 import Dropdown from "./Dropdown";
-import { Step } from "../Step/types";
-import { DefaultViewBuilderCore } from "drizzle-orm/pg-core";
+import { type Step } from "../Step/types";
+import {
+  type TemplateActionType,
+  type TemplateStepType,
+  funnel,
+} from "~/server/db/funnel";
+type TemplateStatusType = TemplateActionType["templateStatuses"][0];
 
 const Cell = ({
-  action,
-  status,
+  templateStatus,
+  templateAction,
+  templateStep,
   canHaveParent,
   parent,
 }: {
-  action: Action;
-  status: string;
+  templateStatus: TemplateStatusType;
+  templateAction: TemplateActionType;
+  templateStep: TemplateStepType;
   canHaveParent: boolean;
   parent?: Step;
 }) => {
-  const statusCount = action.statuses.filter((innerStatusObj) => {
-    return innerStatusObj.status === status;
-  }).length;
-  const [statefulCount, setStatefulCount] = useState(statusCount);
+  const statusCount = funnel
+    .find((funnelStep) => funnelStep.name === templateStep.name)
+    ?.actions.find((funnelAction) => funnelAction.name === templateAction.name)
+    ?.statuses.filter((status) => status.status === templateStatus.name).length;
+  const [statefulCount, setStatefulCount] = useState(statusCount ?? 0);
 
   const handleOneUp = () => {
     if (!canHaveParent) {
@@ -38,7 +45,10 @@ const Cell = ({
     }) ?? [];
 
   return (
-    <td key={status.concat("row")} className="  flex-1 rounded-md p-2">
+    <td
+      key={templateStatus.name.concat("row")}
+      className="  flex-1 rounded-md p-2"
+    >
       <div className="relative flex gap-2">
         {canHaveParent ? (
           <Dropdown items={items}>

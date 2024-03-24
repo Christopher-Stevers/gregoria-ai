@@ -1,39 +1,50 @@
 import type { Status } from "./types";
 import Cell from "./Cell";
-import { Step } from "../Step/types";
+import type { Step } from "../Step/types";
+import {
+  funnel,
+  type TemplateActionType,
+  type TemplateStepType,
+} from "~/server/db/funnel";
 
 const Row = ({
-  uniqueStatuses,
-  currentStats,
-  action,
+  templateAction,
+  templateStep,
+
   canHaveParent,
   parent,
 }: {
-  uniqueStatuses: string[];
-  currentStats: Status[];
-  action: { name: string; statuses: Status[] };
+  templateAction: TemplateActionType;
+  templateStep: TemplateStepType;
   canHaveParent: boolean;
   parent?: Step;
 }) => {
   return (
     <tr>
-      {uniqueStatuses.map((status) => {
-        const key = `${status}${action.name}header`;
+      {templateAction.templateStatuses.map((templateStatus) => {
+        const key = `${templateStatus.name}${templateAction.name}header`;
         return (
           <Cell
             parent={parent}
             canHaveParent={canHaveParent}
-            status={status}
+            templateStatus={templateStatus}
+            templateAction={templateAction}
+            templateStep={templateStep}
             key={key}
-            action={action}
           />
         );
       })}
-      {currentStats.map((stat, index) => {
-        const key = `${stat.status}${index}body`;
+      {templateAction.templateStatuses.map((stat, index) => {
+        const key = `${stat.name}${index}body`;
+        const intValue = funnel
+          .find((funnelStep) => funnelStep.name === templateStep.name)
+          ?.actions.find(
+            (funnelAction) => funnelAction.name === templateAction.name,
+          )
+          ?.statuses.find((status) => status.status === stat.name)?.intValue;
         return (
           <td key={key}>
-            <div>{stat.intValue}</div>
+            <div>{intValue}</div>
           </td>
         );
       })}

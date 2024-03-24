@@ -3,45 +3,53 @@
 import H3 from "~/components/base/h3";
 import { Tab } from "@headlessui/react";
 
-import type { Step } from "./types";
+import type { Step as StepType } from "./types";
 import Action from "../Action";
+import type { TemplateStepType } from "~/server/db/funnel";
 
 const Step = ({
-  step,
+  templateStep,
   canHaveParent,
   parent,
 }: {
   canHaveParent: boolean;
-  step: Step;
-  parent?: Step;
+  templateStep: TemplateStepType;
+  parent?: StepType;
 }) => {
   return (
-    <div key={step.name} className="bg-accent border-hot p-4">
+    <div key={templateStep.name} className="bg-accent border-hot p-4">
       <div className="flex justify-between">
-        <H3> {step.name}</H3>Timescale: Week
+        <H3> {templateStep.name}</H3>Timescale: Week
       </div>
       <ul>
         <Tab.Group>
           <Tab.List>
-            {step.actions.map((action) => {
-              if (!action) return null;
+            {templateStep.templateActions.map((templateAction) => {
+              if (!templateAction) return null;
 
               return (
-                <Tab key={action.name} className="tab min-w-[32px] px-4">
-                  {action.name}
+                <Tab
+                  key={templateAction.name}
+                  className="tab min-w-[32px] px-4"
+                >
+                  {templateAction.name}
                 </Tab>
               );
             })}
           </Tab.List>
           <Tab.Panels>
-            {step.actions.map((action) => {
-              if (!action) return null;
+            {templateStep.templateActions.map((templateAction) => {
+              if (!templateAction) return null;
 
               return (
-                <Tab.Panel className={"border-2 border-hot"} key={action.name}>
+                <Tab.Panel
+                  className={"border-2 border-hot"}
+                  key={templateAction.name}
+                >
                   <Action
                     parent={parent}
-                    action={action}
+                    templateStep={templateStep}
+                    templateAction={templateAction}
                     canHaveParent={canHaveParent}
                   />
                 </Tab.Panel>
