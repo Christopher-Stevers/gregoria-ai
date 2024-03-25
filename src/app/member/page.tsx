@@ -12,7 +12,6 @@ const Member = () => {
         );
         const canHaveParent = index !== 0;
         const parent = index === 0 ? {} : funnel[0];
-        console.log(stepLive, funnel, templateStep, canHaveParent, parent);
 
         if (templateStep === undefined) return null;
         return (

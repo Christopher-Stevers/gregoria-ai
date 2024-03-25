@@ -33,6 +33,7 @@ const CreateProject = () => {
   const [threadId, setThreadId] = useState<string>("");
   const { mutate } = api.ai.getText.useMutation({
     onSuccess: (data) => {
+      console.log(data, "my data");
       setThreadId(data.threadId);
       setChatHistory([
         ...chatHistory,
@@ -43,14 +44,13 @@ const CreateProject = () => {
   const setValue = (value: string) => {
     setPromptText(value);
   };
-  const { data } = useSession();
   const handleEnter = (value: string) => {
     const newChatHistory: ChatMessageType[] = [
       ...chatHistory,
       { content: value, role: "user" },
     ];
     setChatHistory(newChatHistory);
-    mutate({ prompt: value, threadId, userName: data!.user.name ?? "" });
+    mutate({ prompt: value, threadId, userName: "dave" });
     setPromptText("");
   };
   return (

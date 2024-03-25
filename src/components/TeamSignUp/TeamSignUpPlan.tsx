@@ -11,7 +11,6 @@ const TeamSignUpPlan = async ({ plan }: { plan: TeamPlan }) => {
       name: `${session?.user?.name}'s team`,
       userId: session?.user?.id,
     });
-    console.log(result, "result");
   };
   return (
     <div className="flex w-72 flex-col gap-4 rounded-md border border-2 border-text p-4 ">
@@ -31,7 +30,7 @@ const TeamSignUpPlan = async ({ plan }: { plan: TeamPlan }) => {
       <form>
         <button
           formAction={handleSignUp}
-          className="bg-accent border-hot h-min w-full self-end justify-self-end rounded-md  border-2 p-2 text-center leading-tight"
+          className="bg-accent h-min w-full self-end justify-self-end rounded-md border-2  border-hot p-2 text-center leading-tight"
         >
           <span>Sign Up</span>
         </button>

@@ -218,7 +218,6 @@ const getActionCountWithCurrentBaseAction = (
   currentActionName: string,
   stepNum: number,
 ) => {
-  console.log(funnelTemplate, "funnelTemplate");
   const discoveryActionsWithCurrentActionNameStatuses = funnel[
     stepNum
   ]!.actions.reduce((accum, action) => {
@@ -305,7 +304,6 @@ export const getFunnelResults = (funnel: Funnel) => {
       )
       .map((elem) => {
         if (stepNum === 0) {
-          console.log(elem, "local");
         }
         const cellsRaw = funnelHeaders.map((header) => {
           const statuses = elem.statuses.filter((status) => {
@@ -371,7 +369,6 @@ export const getFunnelResults = (funnel: Funnel) => {
 
       return (totalPriceInStepByParent / totalPriceInStep) * 100;
     });
-    console.log(result, "result");
     return {
       name: "Percentage of Cash Collected",
       cells: result,
