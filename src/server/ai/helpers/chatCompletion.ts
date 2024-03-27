@@ -14,9 +14,7 @@ const createChatCompletion = async ({
   runId?: string;
   userName: string;
 }) => {
-    threadId = (await openAiClient.beta.threads.create()).id;
-  
-
+  if (!threadId) threadId = (await openAiClient.beta.threads.create()).id;
   await openAiClient.beta.threads.messages.create(threadId, {
     role: "user",
     content: prompt,
@@ -29,11 +27,13 @@ const createChatCompletion = async ({
       })
     ).id;
   }
-  let newFunnelTemplate: FunnelTemplateType = {} as  FunnelTemplateType;
-  const generateFunnelTemplate = async (generatedFunnelTemplate: FunnelTemplateType) => {
+  let newFunnelTemplate: FunnelTemplateType = {} as FunnelTemplateType;
+  const generateFunnelTemplate = async (
+    generatedFunnelTemplate: FunnelTemplateType,
+  ) => {
     newFunnelTemplate = generatedFunnelTemplate;
     return generatedFunnelTemplate;
-  }
+  };
 
   const checkStatusAndPrintMessages = async (
     threadId: string,
@@ -45,51 +45,44 @@ const createChatCompletion = async ({
     );
     if (runStatus.status === "completed") {
       const messages = await openAiClient.beta.threads.messages.list(threadId);
+      const result = messages.data;
+      console.log(result, "result");
+      return result;
+    } else if (runStatus.status === "requires_action") {
+      const requiredAction =
+        runStatus.required_action?.submit_tool_outputs.tool_calls;
+      if (!requiredAction) return null;
+      const toolsOutput = [];
+      for (const action of requiredAction) {
+        const funcName = action.function.name;
+        const functionArguments = JSON.parse(
+          action.function.arguments,
+        ) as FunnelTemplateType;
 
-      return messages;
-    } else if(runStatus.status === "requires_action"){
-      const requiredAction = runStatus.required_action?.submit_tool_outputs.tool_calls
-      if(!requiredAction) return null;
-      const toolsOutput = []
-for(const action of requiredAction){
-  const funcName = action.function.name;
-  const functionArguments = JSON.parse(action.function.arguments) as FunnelTemplateType
- 
-  if (funcName === "generateFunnelTemplate") {
-    const output = await generateFunnelTemplate(functionArguments);
-    toolsOutput.push({
-        tool_call_id: action.id,
-        output: JSON.stringify(output)  
-    });
-} 
-}
-      
-await openAiClient.beta.threads.runs.submitToolOutputs(
-  threadId,
-  runId,
-  { tool_outputs: toolsOutput}
-);
+        if (funcName === "generateFunnelTemplate") {
+          const output = await generateFunnelTemplate(functionArguments);
+          toolsOutput.push({
+            tool_call_id: action.id,
+            output: JSON.stringify(output),
+          });
+        }
+      }
 
-    }
-    else {
+      await openAiClient.beta.threads.runs.submitToolOutputs(threadId, runId, {
+        tool_outputs: toolsOutput,
+      });
+
+      return await checkStatusAndPrintMessages(threadId, runId);
+    } else {
       await sleep(1000);
-      await checkStatusAndPrintMessages(threadId, runId);
+      return await checkStatusAndPrintMessages(threadId, runId);
     }
   };
-   const result = await checkStatusAndPrintMessages(threadId, runId)
-   console.log(result, "end result")
+  const result = await checkStatusAndPrintMessages(threadId, runId);
   return {
     newFunnelTemplate,
     threadId,
-    content: (result)?.data.map(
-      (message) =>
-        message.content
-          .map((content) => {
-            if (content.type === "text") return content.text;
-            else return "";
-          })
-          .join(""),
-    ),
+    content: result,
     runId,
   };
 };
