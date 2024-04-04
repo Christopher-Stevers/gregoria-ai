@@ -1,7 +1,8 @@
-import { type FunnelTemplateType } from "~/server/db/funnel";
+import { funnelTemplate, type FunnelTemplateType } from "~/server/db/funnel";
 import { openAiClient } from "./openAiClient";
 import { sleep } from "~/lib/index";
-export type ChatMessage = { role: "system" | "user"; content: string };
+import { type TextContentBlock, type MessagesPage, type Text } from "openai/resources/beta/threads/messages/messages.mjs";
+export type ChatMessage = { role: "user" | "assistant"; content: Omit<Text, "annotations"> };
 
 const createChatCompletion = async ({
   prompt,
@@ -14,8 +15,9 @@ const createChatCompletion = async ({
   runId?: string;
   userName: string;
 }) => {
+  if(!threadId){
     threadId = (await openAiClient.beta.threads.create()).id;
-  
+  }
 
   await openAiClient.beta.threads.messages.create(threadId, {
     role: "user",
@@ -25,7 +27,7 @@ const createChatCompletion = async ({
     runId = (
       await openAiClient.beta.threads.runs.create(threadId, {
         assistant_id: "asst_PNVichBmkJNAGh4cyfCnvYdr",
-        instructions: `This user wants to be a marketing guru, please address him as ${userName}`,
+        instructions: `This user wants to be a marketing guru, please address him as ${userName} make sure you call generate Funnel template every time you recieve a message but but keep your replies short the user will have started with ${JSON.stringify(funnelTemplate)} as the funnel template.`,
       })
     ).id;
   }
@@ -38,18 +40,19 @@ const createChatCompletion = async ({
   const checkStatusAndPrintMessages = async (
     threadId: string,
     runId: string,
-  ) => {
+  ):Promise<MessagesPage> => {
     const runStatus = await openAiClient.beta.threads.runs.retrieve(
       threadId,
       runId,
     );
     if (runStatus.status === "completed") {
       const messages = await openAiClient.beta.threads.messages.list(threadId);
+   
 
       return messages;
     } else if(runStatus.status === "requires_action"){
       const requiredAction = runStatus.required_action?.submit_tool_outputs.tool_calls
-      if(!requiredAction) return null;
+      if(!requiredAction) throw new Error("No required action found");
       const toolsOutput = []
 for(const action of requiredAction){
   const funcName = action.function.name;
@@ -70,26 +73,32 @@ await openAiClient.beta.threads.runs.submitToolOutputs(
   { tool_outputs: toolsOutput}
 );
 
+await sleep(1000);
+return  await checkStatusAndPrintMessages(threadId, runId);
+
     }
     else {
       await sleep(1000);
-      await checkStatusAndPrintMessages(threadId, runId);
+    return  await checkStatusAndPrintMessages(threadId, runId);
     }
   };
    const result = await checkStatusAndPrintMessages(threadId, runId)
-   console.log(result, "end result")
+  
+   const content= (result).data.map(
+    (message) =>{
+     return  message.content.filter(value=>value.type === "text")
+      .map((content) => {
+      return   {
+          content: (content as TextContentBlock).text, role: message.role
+          
+             } 
+      })
+   return  }
+  ).flat() as ChatMessage[];
   return {
     newFunnelTemplate,
     threadId,
-    content: (result)?.data.map(
-      (message) =>
-        message.content
-          .map((content) => {
-            if (content.type === "text") return content.text;
-            else return "";
-          })
-          .join(""),
-    ),
+    content,
     runId,
   };
 };
