@@ -31,11 +31,13 @@ const createChatCompletion = async ({
       })
     ).id;
   }
-  let newFunnelTemplate: FunnelTemplateType = {} as  FunnelTemplateType;
-  const generateFunnelTemplate = async (generatedFunnelTemplate: FunnelTemplateType) => {
+  let newFunnelTemplate: FunnelTemplateType = {} as FunnelTemplateType;
+  const generateFunnelTemplate = async (
+    generatedFunnelTemplate: FunnelTemplateType,
+  ) => {
     newFunnelTemplate = generatedFunnelTemplate;
     return generatedFunnelTemplate;
-  }
+  };
 
   const checkStatusAndPrintMessages = async (
     threadId: string,
