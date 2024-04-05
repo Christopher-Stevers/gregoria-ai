@@ -197,8 +197,7 @@ const templateSteps: TemplateStepType[] = [
 ];
 
 export const funnelTemplate: FunnelTemplateType = {
-  id: "funnel",
-  steps: templateSteps,
+   templateSteps,
 };
 
 export type TemplateActionType = {
@@ -210,8 +209,7 @@ export type TemplateStepType = {
   templateActions: TemplateActionType[];
 };
 export type FunnelTemplateType = {
-  id: string;
-  steps: TemplateStepType[];
+  templateSteps: TemplateStepType[];
 };
 
 const getActionCountWithCurrentBaseAction = (

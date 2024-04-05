@@ -65,7 +65,7 @@ const Cell = ({
           </button>
         )}
         <Input
-          className="bg-transparent"
+          className="w-12 bg-transparent"
           value={statefulCount.toString()}
           setValue={() => {
             return void 0;

@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { StyledInput } from "~/components/base/input";
 import H4 from "~/components/base/h4";
 import { api } from "~/trpc/react";
@@ -8,7 +8,7 @@ import { type ChatMessage as ChatMessageType } from "~/server/ai/helpers/chatCom
 import { getSession } from "next-auth/react";
 import Member from "~/components/Member";
 import {
-  FunnelTemplateType,
+  type FunnelTemplateType,
   funnelTemplate as funnelTemplateInitial,
 } from "~/server/db/funnel";
 
@@ -48,7 +48,10 @@ const CreateProject = () => {
       if (data.content) {
         setThreadId(data.threadId);
         setChatHistory(data.content);
-        if (data.newFunnelTemplate && data.newFunnelTemplate.steps.length > 0) {
+        if (
+          data.newFunnelTemplate &&
+          data.newFunnelTemplate.templateSteps.length > 0
+        ) {
           setFunnelTemplate(data.newFunnelTemplate);
         }
       }
@@ -70,31 +73,27 @@ const CreateProject = () => {
       threadId,
       userName: name ?? "",
       currentChatHistory: chatHistory,
+      funnelTemplate,
     });
 
     setPromptText("");
   };
   useEffect(() => {
     if (doOnce) {
-      getSession()
-        .then((user) => {
-          const userName = user?.user?.name ?? "";
-          const value =
-            "Can you help me create a marketing funnel based on my unique needs?";
-          const newChatHistory: ChatMessageType[] = [
-            { content: { value }, role: "user" },
-            {
-              content: {
-                value:
-                  "Sure, I can help with that Would you like to modify this template or start from scratch?",
-              },
-              role: "assistant",
-            },
-          ];
-          setChatHistory(newChatHistory);
-          setDoOnce(false);
-        })
-        .catch((err) => console.log(err));
+      const value =
+        "Can you help me create a marketing funnel based on my unique needs?";
+      const newChatHistory: ChatMessageType[] = [
+        { content: { value }, role: "user" },
+        {
+          content: {
+            value:
+              "Sure, I can help with that Would you like to modify this template or start from scratch?",
+          },
+          role: "assistant",
+        },
+      ];
+      setChatHistory(newChatHistory);
+      setDoOnce(false);
     }
   }, [mutate, doOnce, setDoOnce, threadId]);
   return (
@@ -107,11 +106,11 @@ const CreateProject = () => {
         </p>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <div className=" col-start-1 col-end-2">
+        <div className=" col-start-1 col-end-2 max-h-[calc(100vh-250px)] overflow-y-scroll">
           <H4>Chat</H4>
           <ChatMessages chatHistory={chatHistory} />
         </div>
-        <div className="col-start-2 col-end-4 flex-1">
+        <div className="col-start-2 col-end-4 max-h-[calc(100vh-250px)] flex-1 overflow-y-scroll">
           <H4>Result</H4>
 
           <Member funnelTemplate={funnelTemplate} />

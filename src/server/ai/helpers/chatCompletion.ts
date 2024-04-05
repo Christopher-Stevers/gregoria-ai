@@ -1,7 +1,9 @@
-import { funnelTemplate, type FunnelTemplateType } from "~/server/db/funnel";
+import {  type FunnelTemplateType } from "~/server/db/funnel";
 import { openAiClient } from "./openAiClient";
 import { sleep } from "~/lib/index";
 import { type TextContentBlock, type MessagesPage, type Text } from "openai/resources/beta/threads/messages/messages.mjs";
+import { z } from "zod";
+import { FunnelTemplateTypeValidator } from "~/server/api/routers/ai";
 export type ChatMessage = { role: "user" | "assistant"; content: Omit<Text, "annotations"> };
 
 const createChatCompletion = async ({
@@ -9,11 +11,13 @@ const createChatCompletion = async ({
   threadId,
   runId,
   userName,
+  funnelTemplate
 }: {
   prompt: string;
   threadId?: string;
   runId?: string;
   userName: string;
+  funnelTemplate: FunnelTemplateType;
 }) => {
   if(!threadId){
     threadId = (await openAiClient.beta.threads.create()).id;
@@ -27,16 +31,25 @@ const createChatCompletion = async ({
     runId = (
       await openAiClient.beta.threads.runs.create(threadId, {
         assistant_id: "asst_PNVichBmkJNAGh4cyfCnvYdr",
-        instructions: `This user wants to be a marketing guru, please address him as ${userName} make sure you call generate Funnel template every time you recieve a message but but keep your replies short the user will have started with ${JSON.stringify(funnelTemplate)} as the funnel template.`,
+        instructions: `This user wants to be a marketing guru, please address him as ${userName} make sure you call generate Funnel template one an only one time you recieve a message but but keep your replies short the user will have started with ${JSON.stringify(funnelTemplate)} as the funnel template. In your text replies try to elicit more information about the steps, actions and statuses your user wants if it makes sense in context`,
       })
     ).id;
   }
-  let newFunnelTemplate: FunnelTemplateType = {} as FunnelTemplateType;
+  let newFunnelTemplate: FunnelTemplateType = funnelTemplate
   const generateFunnelTemplate = async (
     generatedFunnelTemplate: FunnelTemplateType,
   ) => {
+    // check if the generated funnel template is the same type
+    // as the original funnel template
+try{
+    FunnelTemplateTypeValidator.parse(generatedFunnelTemplate);
     newFunnelTemplate = generatedFunnelTemplate;
-    return generatedFunnelTemplate;
+    return JSON.stringify(generatedFunnelTemplate)
+}
+catch(e){
+  console.error(e)
+  return "Funnel template type was invalid";
+}
   };
 
   const checkStatusAndPrintMessages = async (
@@ -64,7 +77,7 @@ for(const action of requiredAction){
     const output = await generateFunnelTemplate(functionArguments);
     toolsOutput.push({
         tool_call_id: action.id,
-        output: JSON.stringify(output)  
+        output: output  
     });
 } 
 }
