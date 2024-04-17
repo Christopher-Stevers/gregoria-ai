@@ -2,22 +2,20 @@ import {  type FunnelTemplateType } from "~/server/db/funnel";
 import { openAiClient } from "./openAiClient";
 import { sleep } from "~/lib/index";
 import { type TextContentBlock, type MessagesPage, type Text } from "openai/resources/beta/threads/messages/messages.mjs";
-import { z } from "zod";
 import { FunnelTemplateTypeValidator } from "~/server/api/routers/ai";
+import { funnelTemplate } from "./functionTemplate";
 export type ChatMessage = { role: "user" | "assistant"; content: Omit<Text, "annotations"> };
 
 const createChatCompletion = async ({
   prompt,
   threadId,
   runId,
-  userName,
-  funnelTemplate
+  userName
 }: {
   prompt: string;
   threadId?: string;
   runId?: string;
   userName: string;
-  funnelTemplate: FunnelTemplateType;
 }) => {
   if(!threadId){
     threadId = (await openAiClient.beta.threads.create()).id;
@@ -35,7 +33,7 @@ const createChatCompletion = async ({
       })
     ).id;
   }
-  let newFunnelTemplate: FunnelTemplateType = funnelTemplate
+  let newFunnelTemplate: FunnelTemplateType | undefined;
   const generateFunnelTemplate = async (
     generatedFunnelTemplate: FunnelTemplateType,
   ) => {
@@ -108,7 +106,7 @@ return  await checkStatusAndPrintMessages(threadId, runId);
           
              } 
       })
-   return  }
+     }
   ).flat() as ChatMessage[];
   return {
     newFunnelTemplate,

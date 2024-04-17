@@ -1,7 +1,6 @@
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { z } from "zod";
 import chatCompletion from "~/server/ai/helpers/chatCompletion";
-import { funnelTemplate } from "~/server/db/funnel";
 
 
 const TemplateActionType = z.object({
@@ -21,7 +20,6 @@ export const FunnelTemplateTypeValidator = z.object({
 export const aiRouter = createTRPCRouter({
   getText: protectedProcedure
     .input(z.object({
-      funnelTemplate:FunnelTemplateTypeValidator,
         prompt: z.string(),
         threadId: z.string().optional(),
         runId: z.string().optional(),
@@ -37,11 +35,11 @@ export const aiRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input }) => {
-      const { prompt, threadId, runId, userName, funnelTemplate } = input;
+      const { prompt, threadId, runId, userName } = input;
       const currentChatHistoryLength = input.currentChatHistory.length
     
       const result = await chatCompletion({
-        funnelTemplate,
+        
         prompt,
         threadId,
         runId,

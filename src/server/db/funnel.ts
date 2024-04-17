@@ -1,5 +1,5 @@
 import type { Step } from "~/components/Member/Step/types";
-import type { Status } from "~/components/Member/Action/types";
+import type { Action, Status } from "~/components/Member/Action/types";
 
 const ccStatuses = [
   { status: "initiated" },
@@ -212,13 +212,22 @@ export type FunnelTemplateType = {
   templateSteps: TemplateStepType[];
 };
 
+const resultsBase = 0;
+
 const getActionCountWithCurrentBaseAction = (
+  funnel:Funnel,
   currentActionName: string,
-  stepNum: number,
+  stepName: string,
 ) => {
-  const discoveryActionsWithCurrentActionNameStatuses = funnel[
-    stepNum
-  ]!.actions.reduce((accum, action) => {
+  console.log("step name",stepName)
+  const step = funnel.find((step)=>{
+    step.name ===stepName
+
+  }) !
+  const stepNum = funnel.findIndex((step)=>{
+    return step.name ===stepName})
+
+  const discoveryActionsWithCurrentActionNameStatuses = step.actions.reduce((accum, action) => {
     if (stepNum === 0) {
       if (action.name === currentActionName) {
         return [...accum, ...action.statuses];
@@ -234,27 +243,26 @@ const getActionCountWithCurrentBaseAction = (
   return discoveryActionsWithCurrentActionNameStatuses.length;
 };
 
-export const getFunnelResults = (funnel: Funnel) => {
-  const funnelHeaders = funnel[0]!.actions.map((step) => {
+  const funnelHeaders = funnel[resultsBase]!.actions.map((step) => {
     return step.name;
   });
   const totalOutreach = {
     name: "Total Outreach",
     cells: funnelHeaders.map((elem) => {
-      return getActionCountWithCurrentBaseAction(elem, 0);
+      return getActionCountWithCurrentBaseAction(funnel, elem, "prospect");
     }),
   };
   const getStepVsStep = (
     funnel: Funnel,
-    firstStep: number,
-    secondStep: number,
+    firstStep: string,
+    secondStep: string,
   ) => {
     const result = funnelHeaders.map((elem) => {
-      const secondStepActions = getActionCountWithCurrentBaseAction(
+      const secondStepActions = getActionCountWithCurrentBaseAction(funnel,
         elem,
         secondStep,
       );
-      const firstStepActions = getActionCountWithCurrentBaseAction(
+      const firstStepActions = getActionCountWithCurrentBaseAction(funnel,
         elem,
         firstStep,
       );
@@ -266,23 +274,41 @@ export const getFunnelResults = (funnel: Funnel) => {
 
   const outVsDiscovery = {
     name: "Outreach vs Discovery",
-    cells: getStepVsStep(funnel, 0, 1),
+    cells: getStepVsStep(funnel, "outreach", 1),
   };
   const salesVsDiscovery = {
     name: "Sales vs Discovery",
-    cells: getStepVsStep(funnel, 0, 2),
+    cells: getStepVsStep(funnel, 1, 2),
   };
+
+const getTotalOfStepByResultsBase = (funnel: Funnel, stepName: string, ) => {
+   funnelHeaders.map((elem) => {
+  const discoveryCalls = getActionCountWithCurrentBaseAction(funnel,elem, stepName);
+
+  return discoveryCalls;
+})
+}
+
   const discoveryCalls = {
     name: "Discovery Calls",
     cells: funnelHeaders.map((elem) => {
-      const discoveryCalls = getActionCountWithCurrentBaseAction(elem, 1);
+      const discoveryCalls = getActionCountWithCurrentBaseAction(funnel,elem, "prospect");
 
       return discoveryCalls;
     }),
   };
 
-  const getStatusToProspectStages = (funnel: Funnel, stepNum: number) => {
-    const statusesByPropsectStageWithCurrentParent = funnel[stepNum]?.actions
+  const getStatusToProspectStages = (funnel: Funnel, stepName: string) => {
+    
+    const currentStep= funnel.find((step)=>{
+      return step.name === stepName
+
+    })
+    const stepNum = funnel.findIndex((step)=>{
+      return step.name === stepName
+
+    })
+    const statuseOfCurrentStep = currentStep?.actions
       .reduce(
         (accum, action) => {
           const localAccum = [...accum];
@@ -299,23 +325,23 @@ export const getFunnelResults = (funnel: Funnel) => {
           return localAccum;
         },
         [] as { name: string; statuses: Status[] }[],
-      )
-      .map((elem) => {
-        if (stepNum === 0) {
+      );
+     const statusesByPropsectStageWithCurrentParent=   statuseOfCurrentStep.map((elem) => {
+        if (stepNum === resultsBase) {
         }
         const cellsRaw = funnelHeaders.map((header) => {
           const statuses = elem.statuses.filter((status) => {
-            const parentName = stepNum === 0 ? header : status?.parent?.name;
+            const parentName = stepNum === resultsBase ? header : status?.parent?.name;
             return parentName === header;
           });
           return statuses.length;
         });
         const cellsPercentage = cellsRaw.map((cell, index) => {
           const currentAction = funnelHeaders[index];
-          if (!currentAction) return 0;
-          const currentActionCount = getActionCountWithCurrentBaseAction(
+          if (!currentAction) return resultsBase;
+          const currentActionCount = getActionCountWithCurrentBaseAction(funnel,
             currentAction,
-            stepNum,
+            stepName,
           );
           return (cell / currentActionCount) * 100;
         });
@@ -333,6 +359,85 @@ export const getFunnelResults = (funnel: Funnel) => {
       });
     return statusesByPropsectStageWithCurrentParent?.flat() ?? [];
   };
+
+  const FunnelRowTemplate = [ 
+    {name:"Total Outreach",function: "getTotalOfStepByResultsBase",firstStep:"outreach" },
+ {name:"Outreach vs Prospects",function: "getStepVsStep", firstStep: "outreach", secondStep: "prospect"},
+ {name:"getStatusTotalProspectStage", function: "getStatusTotalProspectStage", stage: "no show", firstStep: "prospect"},
+ {name: "getStatusPercentageOfStage",function: "getStatusPercentageOfStage", stage: "no show", firstStep: "prospect"},
+ {name: "getStatusPercentageOfStage",function: "getStatusTotalProspectStage", stage: "sale booked", firstStep: "prospect"},
+ {name: "getStatusPercentageOfStage",function: "getStatusPercentageOfStage", stage: "sale booked", firstStep: "prospect"},
+ {name: "Total Follow up",function: "getTotalOfStepByResultsBase",step:1 },
+ {name: "getStatusPercentageOfStage",function: "getStatusTotalProspectStage", stage: "no show", firstStep: "sales"},
+ {name: "getStatusPercentageOfStage",function: "getStatusPercentageOfStage", stage: "no show", firstStep: "sales"},
+ {name: "getStatusPercentageOfStage",function: "getStatusTotalProspectStage", stage: "sale booked", firstStep: "sales"},
+ {name: "getStatusPercentageOfStage",function: "getStatusPercentageOfStage", stage: "sale booked", firstStep: "sales"},
+ {name:"Sales vs Outreach",function: "getStepVsStep", firstStep: "prospect", secondStep: "sales"},
+ {name: "getStatusPercentageOfStage",function: "getStatusTotalProspectStage", stage: "no show", firstStep: "offer"},
+ {name: "getStatusPercentageOfStage",function: "getStatusPercentageOfStage", stage: "no show", firstStep: "offer"},
+ {name: "getStatusPercentageOfStage",function: "getStatusTotalProspectStage", stage: "sale booked", firstStep: "offer"},
+ {name: "getStatusPercentageOfStage",function: "getStatusPercentageOfStage", stage: "sale booked", firstStep: "offer"},
+ {name: "getStatusPercentageOfStage",function: "getStatusTotalProspectStage", stage: "no show", firstStep: "offer"},
+   {name: "getStatusPercentageOfStage",function:"getStatusTotalProspectStage", stage:"no show", firstStep:"prospct"},
+   {name: "getStatusPercentageOfStage",function:"getPricePercentageByInStepByParent", firstStep:"outreach", secondStep:"offer"},
+
+
+ ]
+
+ 
+ const getActionStatusCount = (funnel: Funnel, firstStepName: string,secondStepName:string,  actionName: string, statusName:string) => {
+ const baseStep = funnel.find((step)=>step.name === firstStepName)
+  const currentStep = funnel.find((step)=>step.name===secondStepName) !
+  const currentAction = currentStep.actions.find((action)=>action.name===actionName) !
+  const currentStatuses = currentAction.statuses.filter((status)=>status.status===statusName)
+ return  baseStep?.actions.map((action)=>{
+    return currentStatuses.filter((status)=>{
+      return status.parent?.name === action.name
+    }).length
+  }) 
+ }
+
+ const getActionStatusPercentage = (funnel: Funnel, firstStepName: string,secondStepName:string,  actionName: string, statusName:string)=>{
+
+  const baseStep = funnel.find((step)=>step.name === firstStepName)
+  const currentStep = funnel.find((step)=>step.name===secondStepName)!
+  const currentAction = currentStep.actions.find((action)=>action.name===actionName) !
+  const currentStatuses = currentAction.statuses.filter((status)=>status.status===statusName)
+  const allStatuses = currentAction.statuses
+ return  baseStep?.actions.map((action)=>{
+    const currentStatusesOfAction = currentStatuses.filter((status)=>{
+      return status.parent?.name === action.name
+    }).length
+    const allStatusesOfAction = allStatuses.filter((status)=>{
+      return status.parent?.name === action.name
+    })
+    return 100 * currentStatusesOfAction / allStatusesOfAction
+  }) 
+ }
+
+ 
+ 
+
+ type funnelRowTemplateType = typeof FunnelRowTemplate
+ const renderFunnelRow = (funnel: Funnel, FunnelRowTemplateItem: funnelRowTemplateType[number]) => {
+  switch(FunnelRowTemplateItem.function) {
+    case "getTotalOfStepByResultsBase":
+      return getTotalOfStepByResultsBase(funnel, FunnelRowTemplateItem.firstStep!);
+    case "getStepVsStep":
+      return getStepVsStep(funnel, FunnelRowTemplateItem.firstStep!, FunnelRowTemplateItem.secondStep!);
+    case "getStatusTotalProspectStage":
+      return getActionStatusCount(funnel, FunnelRowTemplateItem.stage, FunnelRowTemplateItem.firstStep!);
+    case "getStatusPercentageOfStage":
+      return getActionStatusPercentage(funnel, FunnelRowTemplateItem.stage, FunnelRowTemplateItem.firstStep);
+    case "getPricePercentageByInStepByParent":
+      return getPricePercentageByInStepByParent(funnel, FunnelRowTemplateItem.parentStep);
+  }
+ }
+
+ const getFunnelResultsFromTemplate = (funnel: Funnel, FunnelRowTemplate:funnelRowTemplateType) => {
+  const funnelResults = FunnelRowTemplate
+
+ }
 
   const getCombinedPrice = (statuses: Status[]) => {
     return statuses.reduce((accum, totalPrice) => {
@@ -373,17 +478,21 @@ export const getFunnelResults = (funnel: Funnel) => {
     };
   };
 
+
   const funnelRows = [
     totalOutreach,
     outVsDiscovery,
-    salesVsDiscovery,
-    discoveryCalls,
     ...getStatusToProspectStages(funnel, 1),
+    discoveryCalls,
 
     ...getStatusToProspectStages(funnel, 2),
 
+    salesVsDiscovery,
     ...getStatusToProspectStages(funnel, 3),
     getPricePercentageByInStepByParent(funnel, 3),
   ];
+
+  
+export const getFunnelResults = (funnel: Funnel) => {
   return { funnelHeaders, funnelRows };
 };

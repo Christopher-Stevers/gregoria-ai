@@ -11,6 +11,7 @@ import {
   type FunnelTemplateType,
   funnelTemplate as funnelTemplateInitial,
 } from "~/server/db/funnel";
+import { capitalize } from "~/lib";
 
 const ChatMessage = ({ message }: { message: ChatMessageType }) => {
   return (
@@ -36,10 +37,10 @@ const ChatMessages = ({ chatHistory }: { chatHistory: ChatMessageType[] }) => {
 
 const CreateProject = () => {
   const [doOnce, setDoOnce] = useState(true);
-  const [funnelTemplate, setFunnelTemplate] = useState<FunnelTemplateType>(
-    funnelTemplateInitial,
-  );
+  const [funnelTemplate, setFunnelTemplate] =
+    useState<FunnelTemplateType | null>(null);
   const [promptText, setPromptText] = useState("");
+  const [stage, setStage] = useState<"member" | "owner">("member");
   const [chatHistory, setChatHistory] = useState<ChatMessageType[]>([]);
   const [threadId, setThreadId] = useState<string>("");
   const { mutate } = api.ai.getText.useMutation({
@@ -50,7 +51,7 @@ const CreateProject = () => {
         setChatHistory(data.content);
         if (
           data.newFunnelTemplate &&
-          data.newFunnelTemplate.templateSteps.length > 0
+          data.newFunnelTemplate?.templateSteps.length > 0
         ) {
           setFunnelTemplate(data.newFunnelTemplate);
         }
@@ -73,7 +74,6 @@ const CreateProject = () => {
       threadId,
       userName: name ?? "",
       currentChatHistory: chatHistory,
-      funnelTemplate,
     });
 
     setPromptText("");
@@ -99,11 +99,20 @@ const CreateProject = () => {
   return (
     <div className="flex w-full flex-col gap-4">
       <div>
-        <p>Create Project: Step 1 configure member input</p>
-        <p>
-          Warning: this can not be undone once your team members have begun
-          adding data
-        </p>
+        <div className="flex justify-between">
+          <button
+            className="bg-accent border-2 border-main px-4 py-2"
+            onClick={() => setStage("member")}
+          >
+            Stage 1 configure member input
+          </button>
+          <button
+            className="bg-accent border-2 border-hot px-4 py-2"
+            onClick={() => setStage("owner")}
+          >
+            Stage 2 configure owner dashboard
+          </button>
+        </div>
       </div>
       <div className="grid grid-cols-3 gap-4">
         <div className=" col-start-1 col-end-2 max-h-[calc(100vh-250px)] overflow-y-scroll">
@@ -111,9 +120,11 @@ const CreateProject = () => {
           <ChatMessages chatHistory={chatHistory} />
         </div>
         <div className="col-start-2 col-end-4 max-h-[calc(100vh-250px)] flex-1 overflow-y-scroll">
-          <H4>Result</H4>
+          <H4>{capitalize(stage)} interface</H4>
 
-          <Member funnelTemplate={funnelTemplate} />
+          {funnelTemplate !== null && stage === "member" && (
+            <Member funnelTemplate={funnelTemplate} />
+          )}
         </div>
       </div>
       <div className="fixed bottom-0 w-[calc(100%-144px)]  p-4">
