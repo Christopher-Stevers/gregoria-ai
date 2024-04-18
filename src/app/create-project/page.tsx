@@ -12,6 +12,8 @@ import {
   funnelTemplate as funnelTemplateInitial,
 } from "~/server/db/funnel";
 import { capitalize } from "~/lib";
+import { FolderArrowDownIcon } from "@heroicons/react/24/solid";
+import SaveFunnel from "~/components/CreateProject/SaveFunnel";
 
 const ChatMessage = ({ message }: { message: ChatMessageType }) => {
   return (
@@ -45,13 +47,12 @@ const CreateProject = () => {
   const [threadId, setThreadId] = useState<string>("");
   const { mutate } = api.ai.getText.useMutation({
     onSuccess: (data) => {
-      console.log(data, "data");
       if (data.content) {
         setThreadId(data.threadId);
         setChatHistory(data.content);
         if (
           data.newFunnelTemplate &&
-          data.newFunnelTemplate?.templateSteps.length > 0
+          data.newFunnelTemplate?.stepTemplates.length > 0
         ) {
           setFunnelTemplate(data.newFunnelTemplate);
         }
@@ -87,7 +88,7 @@ const CreateProject = () => {
         {
           content: {
             value:
-              "Sure, I can help with that Would you like to modify this template or start from scratch?",
+              "Sure, I can help with that Would you like to start with our template or start from scratch?",
           },
           role: "assistant",
         },
@@ -101,13 +102,13 @@ const CreateProject = () => {
       <div>
         <div className="flex justify-between">
           <button
-            className="bg-accent border-2 border-main px-4 py-2"
+            className={`bg-accent border-2 ${stage === "member" ? "border-hot" : "border-main"} px-4 py-2`}
             onClick={() => setStage("member")}
           >
             Stage 1 configure member input
           </button>
           <button
-            className="bg-accent border-2 border-hot px-4 py-2"
+            className={`bg-accent border-2 ${stage === "owner" ? "border-hot" : "border-main"} px-4 py-2`}
             onClick={() => setStage("owner")}
           >
             Stage 2 configure owner dashboard
@@ -127,13 +128,14 @@ const CreateProject = () => {
           )}
         </div>
       </div>
-      <div className="fixed bottom-0 w-[calc(100%-144px)]  p-4">
+      <div className="fixed bottom-0 flex w-[calc(100%-144px)] gap-4 p-4">
         <StyledInput
           className="bg-accent w-full border-main text-text"
           value={promptText}
           setValue={setValue}
           onEnter={() => handleEnter(promptText)}
         />
+        <SaveFunnel threadId={threadId} funnelTemplate={funnelTemplate} />
       </div>
     </div>
   );

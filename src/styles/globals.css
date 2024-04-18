@@ -22,4 +22,7 @@ box-shadow:none}
   .tab{
     @apply ui-selected:bg-accent ui-selected:border-hot border-2 border-transparent border-b-0 -mb-0.5 pb-[10px] text-text p-2 focus-visible:outline-none outline-none
   }
+  .lg-icon{
+    @apply w-8 h-8
+  }
 }

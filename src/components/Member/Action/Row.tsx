@@ -21,7 +21,7 @@ const Row = ({
 }) => {
   return (
     <tr>
-      {templateAction.templateStatuses.map((templateStatus) => {
+      {templateAction.statusTemplates.map((templateStatus) => {
         const key = `${templateStatus.name}${templateAction.name}header`;
         return (
           <Cell
@@ -34,7 +34,7 @@ const Row = ({
           />
         );
       })}
-      {templateAction.templateStatuses.map((stat, index) => {
+      {templateAction.statusTemplates.map((stat, index) => {
         const key = `${stat.name}${index}body`;
         const intValue = funnel
           .find((funnelStep) => funnelStep.name === templateStep.name)

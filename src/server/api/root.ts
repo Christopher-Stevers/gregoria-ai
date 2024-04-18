@@ -1,6 +1,7 @@
 import { createTRPCRouter } from "~/server/api/trpc";
 import { teamRouter } from "./routers/team";
 import { aiRouter } from "./routers/ai";
+import { funnelTemplateRouter } from "./routers/funnelTemplate";
 
 /**
  * This is the primary router for your server.
@@ -10,6 +11,7 @@ import { aiRouter } from "./routers/ai";
 export const appRouter = createTRPCRouter({
   team: teamRouter,
   ai: aiRouter,
+  funnelTemplate: funnelTemplateRouter,
 });
 
 // export type definition of API

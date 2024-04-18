@@ -38,7 +38,7 @@ export default async function RootLayout({
           ) : (
             <div>
               {team ? (
-                <TeamProvider initialValue={team}>{children}</TeamProvider>
+                <TeamProvider initialValue={userTeams}>{children}</TeamProvider>
               ) : (
                 <TeamSignUp />
               )}

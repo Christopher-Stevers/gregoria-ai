@@ -7,7 +7,7 @@ import {
   type TemplateStepType,
   funnel,
 } from "~/server/db/funnel";
-type TemplateStatusType = TemplateActionType["templateStatuses"][0];
+type TemplateStatusType = TemplateActionType["statusTemplates"][0];
 
 const Cell = ({
   templateStatus,

@@ -13,6 +13,8 @@ import { ZodError, z } from "zod";
 
 import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
+import { teams, teamsToUsers } from "../db/schema";
+import { and, eq } from "drizzle-orm";
 
 /**
  * 1. CONTEXT
@@ -89,13 +91,19 @@ export const publicProcedure = t.procedure;
  * @see https://trpc.io/docs/procedures
  */
 export const teamProcedure = t.procedure
-  .input(z.object({ teamId: z.string() }))
-  .use(({ ctx, next, input }) => {
+  .input(z.object({ teamId: z.number() }))
+  .use(async ({ ctx, next, input }) => {
     if (!ctx.session || !ctx.session.user) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
-    const userTeamId = ctx.session.user.teamId;
-    if (!userTeamId ?? userTeamId !== input.teamId) {
+
+    const teamToUser = await ctx.db
+      .select()
+      .from(teamsToUsers)
+      .where(and(eq(teamsToUsers.teamId, input.teamId)))
+      .limit(1)
+      .execute();
+    if (!teamToUser) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
     return next({

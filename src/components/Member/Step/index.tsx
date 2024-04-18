@@ -24,7 +24,7 @@ const Step = ({
       <ul>
         <Tab.Group>
           <Tab.List>
-            {templateStep.templateActions.map((templateAction) => {
+            {templateStep.actionTemplates.map((templateAction) => {
               if (!templateAction) return null;
 
               return (
@@ -38,7 +38,7 @@ const Step = ({
             })}
           </Tab.List>
           <Tab.Panels>
-            {templateStep.templateActions.map((templateAction) => {
+            {templateStep.actionTemplates.map((templateAction) => {
               if (!templateAction) return null;
 
               return (

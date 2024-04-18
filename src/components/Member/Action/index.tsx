@@ -24,7 +24,7 @@ const Action = ({
     <table className=" w-full ">
       <thead>
         <tr>
-          {templateAction.templateStatuses.map((status) => {
+          {templateAction.statusTemplates.map((status) => {
             const statusName = status.name;
             return (
               <th key={statusName} className=" flex-1 rounded-md p-2 text-left">

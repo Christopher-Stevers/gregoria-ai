@@ -123,89 +123,89 @@ export const funnel: Funnel = [
   steps[2] as Step,
   steps[3] as Step,
 ];
-const ccTemplateStatuses = [
+const ccstatusTemplates = [
   { name: "initiated" },
   { name: "dead line" },
   { name: "hang up" },
   { name: "deep conversation" },
 ];
-const emailTemplateStatuses = [
+const emailstatusTemplates = [
   { name: "spam" },
   { name: "response" },
   { name: "sale booked" },
 ];
-const linkedinTemplateStatuses = [
+const linkedinstatusTemplates = [
   { name: "no response" },
   { name: "conversation" },
   { name: "discovery call booked" },
 ];
-const discoveryTemplateStatuses = [
+const discoverystatusTemplates = [
   { name: "sale booked" },
   { name: "reschedule" },
   { name: "no show" },
 ];
-const meetingTemplateStatuses = [{ name: "sale booked" }, { name: "no Show" }];
-const saleTemplateStatuses = [
+const meetingstatusTemplates = [{ name: "sale booked" }, { name: "no Show" }];
+const salestatusTemplates = [
   { name: "show" },
   { name: "cancelled" },
   { name: "reschedule" },
   { name: "no show" },
 ];
-const offerTemplateStatuses = [
+const offerstatusTemplates = [
   { name: "Close", intValue: 1000 },
   { name: "bounced on price", intValue: 2000 },
   { name: "bounced on terms", intValue: 5000 },
 ];
-const templateActions = [
-  { name: "cold call", templateStatuses: ccTemplateStatuses },
-  { name: "email", templateStatuses: emailTemplateStatuses },
-  { name: "linkedin dm", templateStatuses: linkedinTemplateStatuses },
-  { name: "discovery call", templateStatuses: discoveryTemplateStatuses },
-  { name: "meeting", templateStatuses: meetingTemplateStatuses },
-  { name: "Sale", templateStatuses: saleTemplateStatuses },
-  { name: "Offer", templateStatuses: offerTemplateStatuses },
+const actionTemplates = [
+  { name: "cold call", statusTemplates: ccstatusTemplates },
+  { name: "email", statusTemplates: emailstatusTemplates },
+  { name: "linkedin dm", statusTemplates: linkedinstatusTemplates },
+  { name: "discovery call", statusTemplates: discoverystatusTemplates },
+  { name: "meeting", statusTemplates: meetingstatusTemplates },
+  { name: "Sale", statusTemplates: salestatusTemplates },
+  { name: "Offer", statusTemplates: offerstatusTemplates },
 ];
-const templateSteps: TemplateStepType[] = [
+const stepTemplates: TemplateStepType[] = [
   {
     name: "Outreach",
-    templateActions: [
-      templateActions[0] as TemplateActionType,
-      templateActions[1] as TemplateActionType,
-      templateActions[2] as TemplateActionType,
+    actionTemplates: [
+      actionTemplates[0] as TemplateActionType,
+      actionTemplates[1] as TemplateActionType,
+      actionTemplates[2] as TemplateActionType,
     ],
   },
   {
     name: "Prospect",
-    templateActions: [
-      templateActions[3] as TemplateActionType,
-      templateActions[4] as TemplateActionType,
+    actionTemplates: [
+      actionTemplates[3] as TemplateActionType,
+      actionTemplates[4] as TemplateActionType,
     ],
   },
   {
     name: "Sale",
-    templateActions: [templateActions[5] as TemplateActionType],
+    actionTemplates: [actionTemplates[5] as TemplateActionType],
   },
 
   {
     name: "Offer",
-    templateActions: [templateActions[6] as TemplateActionType],
+    actionTemplates: [actionTemplates[6] as TemplateActionType],
   },
 ];
 
 export const funnelTemplate: FunnelTemplateType = {
-  templateSteps,
+  stepTemplates,
 };
 
 export type TemplateActionType = {
   name: string;
-  templateStatuses: { name: string }[];
+  statusTemplates: { name: string }[];
 };
 export type TemplateStepType = {
   name: string;
-  templateActions: TemplateActionType[];
+  actionTemplates: TemplateActionType[];
 };
 export type FunnelTemplateType = {
-  templateSteps: TemplateStepType[];
+  stepTemplates: TemplateStepType[];
 };
 
 const getActionCountWithCurrentBaseAction = (

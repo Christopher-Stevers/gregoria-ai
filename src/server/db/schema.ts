@@ -21,24 +21,18 @@ import { type AdapterAccount } from "next-auth/adapters";
  */
 export const createTable = pgTableCreator((name) => `gregoria-ai_${name}`);
 
-export const posts = createTable(
-  "post",
-  {
-    id: serial("id").primaryKey(),
-    name: varchar("name", { length: 256 }),
-    createdById: varchar("createdById", { length: 255 }).notNull(),
-    createdAt: timestamp("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updatedAt")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-  },
-  (example) => ({
-    createdByIdIdx: index("createdById_idx").on(example.createdById),
-    nameIndex: index("name_idx").on(example.name),
+export const posts = createTable("posts", {
+  id: serial("id").primaryKey(),
+  content: text("content"),
+  authorId: varchar("id", { length: 255 }),
+});
+
+export const postsRelations = relations(posts, ({ one }) => ({
+  author: one(users, {
+    fields: [posts.authorId],
+    references: [users.id],
   }),
-);
+}));
 
 export const teams = createTable("team", {
   id: serial("id").primaryKey(),
@@ -86,7 +80,110 @@ export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   sessions: many(sessions),
   teams: many(teams),
+  posts: many(posts),
 }));
+
+export const funnelTemplates = createTable(
+  "funnelTemplate",
+  {
+    id: serial("id").primaryKey(),
+    creatorThreadId: varchar("creatorThreadId", { length: 255 }).notNull(),
+    userId: varchar("userId", { length: 255 }).notNull(),
+    teamId: bigint("teamId", { mode: "number" }).notNull(),
+  },
+  (ft) => ({
+    creatorThreadIdIdx: index("funnelTemplate_creatorThreadId_idx").on(
+      ft.creatorThreadId,
+    ),
+    userIdIdx: index("funnelTemplate_userId_idx").on(ft.userId),
+    teamIdIdx: index("funnelTemplate_teamId_idx").on(ft.teamId),
+  }),
+);
+
+export const funnelTemplateRelations = relations(
+  funnelTemplates,
+  ({ many }) => ({
+    stepTemplates: many(stepTemplates),
+  }),
+);
+
+export const stepTemplates = createTable(
+  "stepTemplate",
+  {
+    id: serial("id").primaryKey(),
+    funnelTemplateId: bigint("funnelTemplateId", { mode: "number" }).notNull(),
+    name: varchar("name", { length: 255 }).notNull(),
+    index: integer("index").notNull(),
+  },
+  (st) => ({
+    funnelTemplateIdIdx: index("stepTemplate_funnelTemplateId_idx").on(
+      st.funnelTemplateId,
+    ),
+  }),
+);
+
+export const stepTemplateRelations = relations(
+  stepTemplates,
+  ({ many, one }) => ({
+    actionTemplates: many(actionTemplates),
+    funnelTemplates: one(funnelTemplates, {
+      fields: [stepTemplates.funnelTemplateId],
+      references: [funnelTemplates.id],
+    }),
+  }),
+);
+
+export const actionTemplates = createTable(
+  "actionTemplate",
+  {
+    id: serial("id").primaryKey(),
+    stepTemplateId: bigint("stepTemplateId", { mode: "number" }).notNull(),
+    name: varchar("name", { length: 255 }).notNull(),
+    index: integer("index").notNull(),
+  },
+  (at) => ({
+    stepTemplateIdIdx: index("actionTemplate_stepTemplateId_idx").on(
+      at.stepTemplateId,
+    ),
+  }),
+);
+
+export const actionTemplateRelations = relations(
+  actionTemplates,
+  ({ many, one }) => ({
+    statusTemplates: many(statusTemplates),
+    stepTemplate: one(stepTemplates, {
+      fields: [actionTemplates.stepTemplateId],
+      references: [stepTemplates.id],
+    }),
+  }),
+);
+
+export const statusTemplates = createTable(
+  "statusTemplate",
+  {
+    id: serial("id").primaryKey(),
+    actionTemplateId: bigint("actionTemplateId", { mode: "number" }).notNull(),
+    trackedStep: varchar("trackedStep", { length: 255 }).notNull(),
+    name: varchar("name", { length: 255 }).notNull(),
+    index: integer("index").notNull(),
+  },
+  (st) => ({
+    actionTemplateIdIdx: index("statusTemplate_actionTemplateId_idx").on(
+      st.actionTemplateId,
+    ),
+  }),
+);
+
+export const statusTemplateRelations = relations(
+  statusTemplates,
+  ({ one }) => ({
+    actionTemplate: one(actionTemplates, {
+      fields: [statusTemplates.actionTemplateId],
+      references: [actionTemplates.id],
+    }),
+  }),
+);
 
 export const accounts = createTable(
   "account",
@@ -146,3 +243,25 @@ export const verificationTokens = createTable(
     compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
   }),
 );
+
+const schema = {
+  accounts,
+  funnelTemplates,
+  funnelTemplateRelations,
+  posts,
+  postsRelations,
+  sessions,
+  actionTemplates,
+  actionTemplateRelations,
+  stepTemplates,
+  stepTemplateRelations,
+  statusTemplates,
+  statusTemplateRelations,
+  teams,
+  teamsToUsers,
+  users,
+  usersRelations,
+  usersToTeams,
+  verificationTokens,
+};
+export default schema;
