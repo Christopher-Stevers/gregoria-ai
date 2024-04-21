@@ -1,5 +1,5 @@
 import type { Step } from "~/components/Member/Step/types";
-import type { Action, Status } from "~/components/Member/Action/types";
+import type { Status } from "~/components/Member/Action/types";
 
 const ccStatuses = [
   { status: "initiated" },
@@ -198,7 +198,7 @@ export const funnelTemplate: FunnelTemplateType = {
 
 export type TemplateActionType = {
   name: string;
-  statusTemplates: { name: string }[];
+  statusTemplates: { name: string; id?: number }[];
 };
 export type TemplateStepType = {
   name: string;

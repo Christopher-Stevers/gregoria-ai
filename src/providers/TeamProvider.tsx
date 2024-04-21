@@ -1,21 +1,20 @@
 "use client";
 
 import React, { useContext, type ReactNode } from "react";
-import TeamSignUp from "~/components/TeamSignUp/TeamSignUp";
-import { getServerAuthSession } from "~/server/auth";
 
 import { api } from "~/trpc/react";
-import { TeamContext, TeamResponse } from "./TeamContext";
+import { TeamContext, type TeamResponse } from "./TeamContext";
 
 export const useTeam = () => {
   const teamResponse = useContext(TeamContext);
 
-  const team = teamResponse?.[0]?.team;
+  const teamId = teamResponse?.[0]?.team?.id;
+  const userId = teamResponse?.[0]?.user?.id;
 
-  if (!team) {
+  if (!teamId || !userId) {
     throw new Error("No team found");
   }
-  return team;
+  return { teamId, userId };
 };
 
 export const useUser = () => {

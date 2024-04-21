@@ -7,10 +7,10 @@ export const funnelTemplate = {
       type: "string",
       description: "A unique identifier for the funnel template.",
     },
-    steps: {
+    templateSteps: {
       type: "array",
       description:
-        "An array of steps, each representing a stage in the funnel.",
+        "An array of steps, each representing a stage in a sales funnel. Usually begininning with some form of lead generation and ending with a sale.",
       items: {
         type: "object",
         properties: {
@@ -19,9 +19,10 @@ export const funnelTemplate = {
             description:
               "The name of the step, indicating the stage in the sales process.",
           },
-          actionTemplates: {
+          templateActions: {
             type: "array",
-            description: "A list of actions associated with this step.",
+            description:
+              "A list of approaches associated with this step, for example outreach could be email, social media, or some other form of communication.",
             items: {
               type: "object",
               properties: {
@@ -29,7 +30,7 @@ export const funnelTemplate = {
                   type: "string",
                   description: "The name of the action.",
                 },
-                statusTemplates: {
+                templateStatuses: {
                   type: "array",
                   description:
                     "A list of statuses that can result from this action.",
@@ -45,14 +46,14 @@ export const funnelTemplate = {
                   },
                 },
               },
-              required: ["name", "statusTemplates"],
+              required: ["name", "templateStatuses"],
             },
           },
         },
-        required: ["name", "actionTemplates"],
+        required: ["name", "templateActions"],
       },
     },
   },
-  required: ["id", "steps"],
+  required: ["id", "templateSteps"],
 };
 export const FunnelTemplateType = typeof funnelTemplate;

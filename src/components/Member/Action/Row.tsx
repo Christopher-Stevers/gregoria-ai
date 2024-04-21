@@ -1,6 +1,4 @@
-import type { Status } from "./types";
 import Cell from "./Cell";
-import type { Step } from "../Step/types";
 import {
   funnel,
   type TemplateActionType,
@@ -17,7 +15,7 @@ const Row = ({
   templateAction: TemplateActionType;
   templateStep: TemplateStepType;
   canHaveParent: boolean;
-  parent?: Step;
+  parent?: TemplateStepType;
 }) => {
   return (
     <tr>

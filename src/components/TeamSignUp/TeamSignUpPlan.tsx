@@ -1,13 +1,13 @@
 import type { TeamPlan } from "./TeamPlans";
 import H3 from "../base/h3";
-import { api } from "~/trpc/server";
 import { getServerAuthSession } from "~/server/auth";
+import { api } from "~/trpc/server";
 
 const TeamSignUpPlan = async ({ plan }: { plan: TeamPlan }) => {
   const session = await getServerAuthSession();
   const handleSignUp = async () => {
     "use server";
-    const result = await api.team.create.mutate({
+    await api.team.create.mutate({
       name: `${session?.user?.name}'s team`,
       userId: session?.user?.id,
     });

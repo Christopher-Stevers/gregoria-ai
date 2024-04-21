@@ -1,10 +1,7 @@
 "use client";
-import { capitalize, getUniqueArray } from "~/lib";
-import type { Action as ActionType } from "./types";
+import { capitalize } from "~/lib";
 import Row from "./Row";
-import type { Step } from "../Step/types";
 import {
-  funnel,
   type TemplateActionType,
   type TemplateStepType,
 } from "~/server/db/funnel";
@@ -18,7 +15,7 @@ const Action = ({
   canHaveParent: boolean;
   templateAction: TemplateActionType;
   templateStep: TemplateStepType;
-  parent?: Step;
+  parent?: TemplateStepType;
 }) => {
   return (
     <table className=" w-full ">

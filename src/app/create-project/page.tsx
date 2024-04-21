@@ -7,13 +7,10 @@ import { api } from "~/trpc/react";
 import { type ChatMessage as ChatMessageType } from "~/server/ai/helpers/chatCompletion";
 import { getSession } from "next-auth/react";
 import Member from "~/components/Member";
-import {
-  type FunnelTemplateType,
-  funnelTemplate as funnelTemplateInitial,
-} from "~/server/db/funnel";
+import { type FunnelTemplateType } from "~/server/db/funnel";
 import { capitalize } from "~/lib";
-import { FolderArrowDownIcon } from "@heroicons/react/24/solid";
 import SaveFunnel from "~/components/CreateProject/SaveFunnel";
+import { useTeam } from "~/providers/TeamProvider";
 
 const ChatMessage = ({ message }: { message: ChatMessageType }) => {
   return (
@@ -38,6 +35,7 @@ const ChatMessages = ({ chatHistory }: { chatHistory: ChatMessageType[] }) => {
 };
 
 const CreateProject = () => {
+  const { teamId } = useTeam();
   const [doOnce, setDoOnce] = useState(true);
   const [funnelTemplate, setFunnelTemplate] =
     useState<FunnelTemplateType | null>(null);
@@ -45,6 +43,23 @@ const CreateProject = () => {
   const [stage, setStage] = useState<"member" | "owner">("member");
   const [chatHistory, setChatHistory] = useState<ChatMessageType[]>([]);
   const [threadId, setThreadId] = useState<string>("");
+  const { data: teamFunnelCount } =
+    api.funnelTemplate.getTeamFunnelCount.useQuery({ teamId });
+  const [funnelName, setFunnelName] = useState(
+    teamFunnelCount !== undefined ? "loopy" : "",
+  );
+  useEffect(() => {
+    const numCount = teamFunnelCount && parseInt(teamFunnelCount as string);
+    console.log(
+      numCount,
+      "my count",
+      typeof numCount === "number" && funnelName === "",
+    );
+    if (typeof numCount === "number" && funnelName === "") {
+      setFunnelName(`Funnel Template ${numCount + 1}`);
+    }
+  }, [teamFunnelCount, funnelName, setFunnelName]);
+  console.log(teamFunnelCount);
   const { mutate } = api.ai.getText.useMutation({
     onSuccess: (data) => {
       if (data.content) {
@@ -122,6 +137,14 @@ const CreateProject = () => {
         </div>
         <div className="col-start-2 col-end-4 max-h-[calc(100vh-250px)] flex-1 overflow-y-scroll">
           <H4>{capitalize(stage)} interface</H4>
+          <div>
+            <StyledInput
+              className="bg-accent w-full border-main text-text"
+              setValue={setFunnelName}
+              value={funnelName}
+              placeholder={"Funnel Name"}
+            />
+          </div>
 
           {funnelTemplate !== null && stage === "member" && (
             <Member funnelTemplate={funnelTemplate} />
@@ -135,7 +158,11 @@ const CreateProject = () => {
           setValue={setValue}
           onEnter={() => handleEnter(promptText)}
         />
-        <SaveFunnel threadId={threadId} funnelTemplate={funnelTemplate} />
+        <SaveFunnel
+          funnelName={funnelName}
+          threadId={threadId}
+          funnelTemplate={funnelTemplate}
+        />
       </div>
     </div>
   );

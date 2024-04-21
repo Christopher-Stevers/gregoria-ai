@@ -54,6 +54,7 @@ export const teamsToUsers = createTable("teamToUser", {
 
 export const teamsRelations = relations(teams, ({ many }) => ({
   users: many(users),
+  statues: many(status),
 }));
 
 export const users = createTable("user", {
@@ -81,6 +82,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
   teams: many(teams),
   posts: many(posts),
+  statuses: many(status),
 }));
 
 export const funnelTemplates = createTable(
@@ -90,6 +92,7 @@ export const funnelTemplates = createTable(
     creatorThreadId: varchar("creatorThreadId", { length: 255 }).notNull(),
     userId: varchar("userId", { length: 255 }).notNull(),
     teamId: bigint("teamId", { mode: "number" }).notNull(),
+    name: varchar("name", { length: 255 }).notNull(),
   },
   (ft) => ({
     creatorThreadIdIdx: index("funnelTemplate_creatorThreadId_idx").on(
@@ -177,11 +180,12 @@ export const statusTemplates = createTable(
 
 export const statusTemplateRelations = relations(
   statusTemplates,
-  ({ one }) => ({
+  ({ one, many }) => ({
     actionTemplate: one(actionTemplates, {
       fields: [statusTemplates.actionTemplateId],
       references: [actionTemplates.id],
     }),
+    statues: many(status),
   }),
 );
 
@@ -243,6 +247,25 @@ export const verificationTokens = createTable(
     compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
   }),
 );
+
+// create status object that is related to one statusTemplate, one user, one team, and has a created at time
+export const status = createTable("status", {
+  id: serial("id").primaryKey(),
+  statusTemplateId: bigint("statusTemplateId", { mode: "number" }).notNull(),
+  userId: varchar("userId", { length: 255 }).notNull(),
+  teamId: bigint("teamId", { mode: "number" }).notNull(),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull(),
+  parentActionId: bigint("parentActionId", { mode: "number" }),
+});
+
+export const statusRelations = relations(status, ({ one }) => ({
+  statusTemplate: one(statusTemplates, {
+    fields: [status.statusTemplateId],
+    references: [statusTemplates.id],
+  }),
+  user: one(users, { fields: [status.userId], references: [users.id] }),
+  team: one(teams, { fields: [status.teamId], references: [teams.id] }),
+}));
 
 const schema = {
   accounts,

@@ -13,7 +13,7 @@ import { ZodError, z } from "zod";
 
 import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
-import { teams, teamsToUsers } from "../db/schema";
+import { teamsToUsers } from "../db/schema";
 import { and, eq } from "drizzle-orm";
 
 /**

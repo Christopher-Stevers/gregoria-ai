@@ -9,6 +9,7 @@ const Member = ({ funnelTemplate }: { funnelTemplate: FunnelTemplateType }) => {
       {funnelTemplate.stepTemplates.map((templateStep, index) => {
         const canHaveParent = index !== 0;
         const parent = index === 0 ? {} : funnelTemplate.stepTemplates[0];
+        console.log(parent, "parent");
 
         if (templateStep === undefined) return null;
         return (

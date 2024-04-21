@@ -20,14 +20,17 @@ export const StyledInput = ({
   setValue,
   className,
   onEnter,
+  placeholder,
 }: {
   value: string;
   setValue: (name: string) => void;
   onEnter?: () => void;
   className?: string;
+  placeholder?: string;
 }) => {
   return (
     <input
+      placeholder={placeholder}
       className={`w-20 rounded-md border-2 border-gray-300 p-2 text-black ${className}`}
       value={value}
       onKeyUp={(e) => {
