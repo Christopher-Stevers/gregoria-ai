@@ -7,10 +7,14 @@ import { api } from "~/trpc/react";
 import { type ChatMessage as ChatMessageType } from "~/server/ai/helpers/chatCompletion";
 import { getSession } from "next-auth/react";
 import Member from "~/components/Member";
-import { type FunnelTemplateType } from "~/server/db/funnel";
 import { capitalize } from "~/lib";
 import SaveFunnel from "~/components/CreateProject/SaveFunnel";
 import { useTeam } from "~/providers/TeamProvider";
+import {
+  funnelTemplate as newFunctionTemplate,
+  type FunnelTemplateType,
+} from "~/server/db/static";
+import MemberProvider from "~/providers/MemberProvider";
 
 const ChatMessage = ({ message }: { message: ChatMessageType }) => {
   return (
@@ -38,7 +42,7 @@ const CreateProject = () => {
   const { teamId } = useTeam();
   const [doOnce, setDoOnce] = useState(true);
   const [funnelTemplate, setFunnelTemplate] =
-    useState<FunnelTemplateType | null>(null);
+    useState<FunnelTemplateType | null>(newFunctionTemplate);
   const [promptText, setPromptText] = useState("");
   const [stage, setStage] = useState<"member" | "owner">("member");
   const [chatHistory, setChatHistory] = useState<ChatMessageType[]>([]);
@@ -50,16 +54,11 @@ const CreateProject = () => {
   );
   useEffect(() => {
     const numCount = teamFunnelCount && parseInt(teamFunnelCount as string);
-    console.log(
-      numCount,
-      "my count",
-      typeof numCount === "number" && funnelName === "",
-    );
+
     if (typeof numCount === "number" && funnelName === "") {
       setFunnelName(`Funnel Template ${numCount + 1}`);
     }
   }, [teamFunnelCount, funnelName, setFunnelName]);
-  console.log(teamFunnelCount);
   const { mutate } = api.ai.getText.useMutation({
     onSuccess: (data) => {
       if (data.content) {
@@ -147,7 +146,9 @@ const CreateProject = () => {
           </div>
 
           {funnelTemplate !== null && stage === "member" && (
-            <Member funnelTemplate={funnelTemplate} />
+            <MemberProvider isLive={false}>
+              <Member funnelTemplate={funnelTemplate} />
+            </MemberProvider>
           )}
         </div>
       </div>

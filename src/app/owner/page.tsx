@@ -1,45 +1,24 @@
-"use client";
-import {
-  getFunnelResults,
-  funnel,
-  FunnelResultsTemplate,
-} from "../../server/db/funnel";
+import Link from "next/link";
+import H2 from "~/components/base/h2";
 
-const Owner = () => {
-  const { funnelHeaders, funnelRows } = getFunnelResults(
-    funnel,
-    FunnelResultsTemplate,
-  );
+import { api } from "~/trpc/server";
+
+const Page = async () => {
+  const teamResponse = await api.team.getUserTeams.query(undefined);
+  const teamId = teamResponse?.[0]?.team?.id as unknown as number;
+  const teamFunnels = await api.funnelTemplate.getTeamFunnels.query({ teamId });
+
   return (
-    <table>
-      <thead>
-        <tr>
-          <td></td>
-          {funnelHeaders.map((header) => {
-            const key = `${header}ownerheader`;
-            return <th key={key}>{header}</th>;
-          })}
-        </tr>
-      </thead>
-      <tbody>
-        {funnelRows
-          .filter((row) => {
-            return row.hasOwnProperty("cells");
-          })
-          .map((row, index) => {
-            return (
-              <tr key={index}>
-                <td>{row.name}</td>
-                {row?.cells?.map((cell, index) => {
-                  const key = `${row.name}${index}ownerbody`;
-                  return <td key={key}>{cell?.toFixed()}</td>;
-                })}
-              </tr>
-            );
-          })}
-      </tbody>
-    </table>
+    <div>
+      <H2>Funnels</H2>
+      <ul>
+        {teamFunnels.map((funnel) => (
+          <li key={funnel.id}>
+            <Link href={`/owner/${funnel.name}`}>{funnel.name}</Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 };
-
-export default Owner;
+export default Page;

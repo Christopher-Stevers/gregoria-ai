@@ -5,7 +5,7 @@ import { Tab } from "@headlessui/react";
 
 import type { Step as StepType } from "./types";
 import Action from "../Action";
-import type { TemplateStepType } from "~/server/db/funnel";
+import type { TemplateStepType } from "~/server/db/static";
 
 const Step = ({
   templateStep,

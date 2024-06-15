@@ -128,6 +128,25 @@ export const funnelTemplateRouter = createTRPCRouter({
         .execute();
       return result;
     }),
+    getHeaders:teamProcedure.input(
+      z.object({funnelName:z.string(), teamId:z.number(), headerIndex: z.number()})
+      
+    ).query(async(
+      {input, ctx:{db}}
+    )=>{
+      const queryResult =await  db.query.funnelTemplates.findFirst({
+        with: {stepTemplates:{
+          where: eq(stepTemplates.index, input.headerIndex),
+          with: {
+            actionTemplates: true
+          }
+        }},
+        where: and(  eq(funnelTemplates.name, input.funnelName), eq(funnelTemplates.teamId, input.teamId))
+      })
+   
+     return queryResult?.stepTemplates[0]?.actionTemplates
+
+    }),
   getTeamFunnelCount: teamProcedure
     .input(z.object({ teamId: z.number() }))
     .query(async ({ input, ctx: { db } }) => {

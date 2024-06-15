@@ -3,7 +3,7 @@ import {
   funnel,
   type TemplateActionType,
   type TemplateStepType,
-} from "~/server/db/funnel";
+} from "~/server/db/static";
 
 const Row = ({
   templateAction,

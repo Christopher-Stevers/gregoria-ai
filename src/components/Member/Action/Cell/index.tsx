@@ -3,8 +3,8 @@ import Dropdown from "../Dropdown";
 import {
   type TemplateActionType,
   type TemplateStepType,
-} from "~/server/db/funnel";
-import { useIsLive } from "~/app/member/[funnelName]/page";
+} from "~/server/db/static";
+import { useFunnel } from "~/providers/MemberProvider";
 import { useTeam } from "~/providers/TeamProvider";
 
 import { api } from "~/trpc/react";
@@ -20,7 +20,7 @@ const Cell = ({
   parent?: TemplateStepType & { id: number };
 }) => {
   const { teamId, userId } = useTeam();
-  const isLive = useIsLive();
+  const { isLive } = useFunnel();
 
   const { data: statusCount, isLoading } = api.status.get.useQuery(
     {
@@ -32,7 +32,6 @@ const Cell = ({
   );
   const utils = api.useUtils();
   const setStatefulCount = (value: number) => {
-    console.log(typeof value, value, "value");
     utils.status.get.setData(
       { statusTemplateId: templateStatus.id!, teamId, userId },
       value,
@@ -51,13 +50,14 @@ const Cell = ({
       isLive,
     }: {
       isLive: boolean;
-      statusCount?: number;
+      statusCount: number;
       userId: string;
       teamId: number;
       statusTemplateId?: number;
     },
   ) => {
     const valChange = val - (statusCount ?? 0);
+    setStatefulCount(statusCount);
     if (isLive && statusTemplateId) {
       mutate({
         teamId,
@@ -80,14 +80,12 @@ const Cell = ({
   const handleOneUp = () => {
     const newStatusCount = statusCount + 1;
     if (!canHaveParent && newStatusCount) {
-      setStatefulCount(newStatusCount);
       handleEditCell(newStatusCount, editingOptions).catch(console.error);
     }
   };
   const handleOneDown = () => {
     const newStatusCount = statusCount - 1;
     if (newStatusCount) {
-      setStatefulCount(newStatusCount);
       handleEditCell(newStatusCount, editingOptions).catch(console.error);
     }
   };

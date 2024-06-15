@@ -7,7 +7,7 @@ export const funnelTemplate = {
       type: "string",
       description: "A unique identifier for the funnel template.",
     },
-    templateSteps: {
+    stepTemplates: {
       type: "array",
       description:
         "An array of steps, each representing a stage in a sales funnel. Usually begininning with some form of lead generation and ending with a sale.",

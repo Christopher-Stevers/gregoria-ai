@@ -44,11 +44,15 @@ export const statusRouter = createTRPCRouter({
         createdAt: new Date(),
         parentActionId,
       };
+      console.log("bsvkend",)
       if (quantity >= 1) {
         for (let i = 0; i < quantity; i++) {
           values.push(baseValue);
         }
-        await db.insert(status).values(values);
+        console.log(values)
+       const result= await db.insert(status).values(values).returning({id: status.id})
+     
+       console.log(result)
       }
       if (quantity < 0) {
         const toDelete = await db
@@ -58,6 +62,7 @@ export const statusRouter = createTRPCRouter({
           .limit(quantity * -1)
           .orderBy(desc(status.createdAt))
           .execute();
+          console.log(toDelete)
 
         await db.delete(status).where(
           or(
