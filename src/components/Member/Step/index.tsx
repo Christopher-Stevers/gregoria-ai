@@ -3,9 +3,9 @@
 import H3 from "~/components/base/h3";
 import { Tab } from "@headlessui/react";
 
-import type { Step as StepType } from "./types";
 import Action from "../Action";
 import type { TemplateStepType } from "~/server/db/static";
+import { useFunnel } from "~/providers/MemberProvider";
 
 const Step = ({
   templateStep,
@@ -14,12 +14,14 @@ const Step = ({
 }: {
   canHaveParent: boolean;
   templateStep: TemplateStepType;
-  parent?: StepType;
+  parent?: TemplateStepType;
 }) => {
+  const { isLive } = useFunnel();
   return (
     <div key={templateStep.name} className="bg-accent border-hot p-4">
       <div className="flex justify-between">
-        <H3> {templateStep.name}</H3>Timescale: Week
+        <H3> {templateStep.name}</H3>
+        {isLive && "Timescale: Week"}
       </div>
       <ul>
         <Tab.Group>
@@ -38,7 +40,11 @@ const Step = ({
             })}
           </Tab.List>
           <Tab.Panels>
-            {templateStep.actionTemplates.map((templateAction) => {
+            {templateStep.actionTemplates.map((templateAction, index) => {
+              const templateActionWithIndex = {
+                ...templateAction,
+                index,
+              };
               if (!templateAction) return null;
 
               return (
@@ -49,7 +55,7 @@ const Step = ({
                   <Action
                     parent={parent}
                     templateStep={templateStep}
-                    templateAction={templateAction}
+                    templateAction={templateActionWithIndex}
                     canHaveParent={canHaveParent}
                   />
                 </Tab.Panel>

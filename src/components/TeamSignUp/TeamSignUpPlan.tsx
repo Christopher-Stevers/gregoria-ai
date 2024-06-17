@@ -13,7 +13,7 @@ const TeamSignUpPlan = async ({ plan }: { plan: TeamPlan }) => {
     });
   };
   return (
-    <div className="flex w-72 flex-col gap-4 rounded-md border border-2 border-text p-4 ">
+    <div className="flex w-72 flex-col gap-4 rounded-md border-text p-4 ">
       <div className="self-center py-4 text-4xl font-extrabold">
         {plan.hasPrice ? `$${plan.price}/mo` : "Contact"}
       </div>

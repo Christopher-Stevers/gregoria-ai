@@ -54,7 +54,7 @@ export const teamsToUsers = createTable("teamToUser", {
 
 export const teamsRelations = relations(teams, ({ many }) => ({
   users: many(users),
-  statues: many(status),
+  statues: many(statuses),
 }));
 
 export const users = createTable("user", {
@@ -82,7 +82,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
   teams: many(teams),
   posts: many(posts),
-  statuses: many(status),
+  statuses: many(statuses),
 }));
 
 export const funnelTemplates = createTable(
@@ -93,6 +93,7 @@ export const funnelTemplates = createTable(
     userId: varchar("userId", { length: 255 }).notNull(),
     teamId: bigint("teamId", { mode: "number" }).notNull(),
     name: varchar("name", { length: 255 }).notNull(),
+    slug: varchar("slug", { length: 255 }).notNull(),
   },
   (ft) => ({
     creatorThreadIdIdx: index("funnelTemplate_creatorThreadId_idx").on(
@@ -155,12 +156,42 @@ export const actionTemplateRelations = relations(
   actionTemplates,
   ({ many, one }) => ({
     statusTemplates: many(statusTemplates),
+
     stepTemplate: one(stepTemplates, {
       fields: [actionTemplates.stepTemplateId],
       references: [stepTemplates.id],
     }),
   }),
 );
+
+// create status object that is related to one statusTemplate, one user, one team, and has a created at time
+export const statuses = createTable(
+  "status",
+  {
+    id: serial("id").primaryKey(),
+    statusTemplateId: bigint("statusTemplateId", { mode: "number" }).notNull(),
+    userId: varchar("userId", { length: 255 }).notNull(),
+    teamId: bigint("teamId", { mode: "number" }).notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull(),
+    parentActionId: bigint("parentActionId", { mode: "number" }),
+  },
+  (st) => ({
+    statusTemplateIdIdx: index("status_statusTemplateId_idx").on(
+      st.statusTemplateId,
+    ),
+    userIdIdx: index("status_userId_idx").on(st.userId),
+    teamIdIdx: index("status_teamId_idx").on(st.teamId),
+  }),
+);
+
+export const statusRelations = relations(statuses, ({ one }) => ({
+  statusTemplate: one(statusTemplates, {
+    fields: [statuses.statusTemplateId],
+    references: [statusTemplates.id],
+  }),
+  user: one(users, { fields: [statuses.userId], references: [users.id] }),
+  team: one(teams, { fields: [statuses.teamId], references: [teams.id] }),
+}));
 
 export const statusTemplates = createTable(
   "statusTemplate",
@@ -185,7 +216,7 @@ export const statusTemplateRelations = relations(
       fields: [statusTemplates.actionTemplateId],
       references: [actionTemplates.id],
     }),
-    statues: many(status),
+    statuses: many(statuses),
   }),
 );
 
@@ -248,25 +279,6 @@ export const verificationTokens = createTable(
   }),
 );
 
-// create status object that is related to one statusTemplate, one user, one team, and has a created at time
-export const status = createTable("status", {
-  id: serial("id").primaryKey(),
-  statusTemplateId: bigint("statusTemplateId", { mode: "number" }).notNull(),
-  userId: varchar("userId", { length: 255 }).notNull(),
-  teamId: bigint("teamId", { mode: "number" }).notNull(),
-  createdAt: timestamp("createdAt", { mode: "date" }).notNull(),
-  parentActionId: bigint("parentActionId", { mode: "number" }),
-});
-
-export const statusRelations = relations(status, ({ one }) => ({
-  statusTemplate: one(statusTemplates, {
-    fields: [status.statusTemplateId],
-    references: [statusTemplates.id],
-  }),
-  user: one(users, { fields: [status.userId], references: [users.id] }),
-  team: one(teams, { fields: [status.teamId], references: [teams.id] }),
-}));
-
 const schema = {
   accounts,
   funnelTemplates,
@@ -280,6 +292,8 @@ const schema = {
   stepTemplateRelations,
   statusTemplates,
   statusTemplateRelations,
+  statusRelations,
+  statuses,
   teams,
   teamsToUsers,
   users,

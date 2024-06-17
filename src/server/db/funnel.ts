@@ -1,9 +1,10 @@
 import type { Status } from "~/components/Member/Action/types";
 import { api } from "~/trpc/server";
 import { type Funnel } from "./static";
-
+import type { FetchedFunnel } from "~/app/owner/[slug]/page";
+/*
 const getActionCountWithCurrentBaseAction = (
-  funnel:Funnel,
+  funnelId: string,
   currentActionName: string,
   stepName: string,
 ) => {
@@ -13,7 +14,6 @@ const getActionCountWithCurrentBaseAction = (
   const stepNum = funnel.findIndex((step) => {
     return step.name === stepName;
   });
-
   const discoveryActionsWithCurrentActionNameStatuses = step.actions.reduce(
     (accum, action) => {
       if (stepNum === 0) {
@@ -31,7 +31,7 @@ const getActionCountWithCurrentBaseAction = (
   );
 
   return discoveryActionsWithCurrentActionNameStatuses.length;
-};
+};*/
 const getFunnelHeaders = (funnel: Funnel, firstStepName: string) => {
   const step = funnel.find((step) => {
     return step.name === firstStepName;
@@ -42,26 +42,30 @@ const getFunnelHeaders = (funnel: Funnel, firstStepName: string) => {
   });
 };
 const getStepVsStep = (
-  funnel: Funnel,
+  funnelId: number,
+  funnelHeaders: string[],
   baseStep: string,
   firstStep: string,
   secondStep: string,
 ) => {
-  const funnelHeaders = getFunnelHeaders(funnel, baseStep);
-  const result = funnelHeaders.map((elem) => {
-    const secondStepActions = getActionCountWithCurrentBaseAction(
-      funnel,
-      elem,
-      secondStep,
-    );
-    const firstStepActions = getActionCountWithCurrentBaseAction(
-      funnel,
-      elem,
-      firstStep,
-    );
+  const result = Promise.all(
+    funnelHeaders.map(async (elem) => {
+      const secondStepActions =
+        await api.action.getActionCountWithCurrentBaseAction.query({
+          funnelId,
+          baseActionName: elem,
+          stepName: secondStep,
+        });
+      const firstStepActions =
+        await api.action.getActionCountWithCurrentBaseAction.query({
+          funnelId,
+          baseActionName: elem,
+          stepName: firstStep,
+        });
 
-    return (secondStepActions / firstStepActions) * 100;
-  });
+      return (secondStepActions / firstStepActions) * 100;
+    }),
+  );
   return result;
 };
 /*
@@ -155,111 +159,116 @@ const getStatusToProspectStages = (funnel: Funnel, stepName: string) => {
   return statusesByPropsectStageWithCurrentParent?.flat() ?? [];
 };
 */
-const getTotalOfStepByResultsBase = (
-  funnel: Funnel,
+const getTotalOfStepByResultsBase = async (
+  funnelId: number,
   firstStepName: string,
-  secondStepName: string,
+  funnelHeaders: string[],
 ) => {
-  const funnelHeaders = getFunnelHeaders(funnel, firstStepName);
-  return funnelHeaders.map((elem) => {
-    return getActionCountWithCurrentBaseAction(funnel, elem, secondStepName);
-  });
+  return await Promise.all(
+    funnelHeaders.map(async (elem) => {
+      return api.action.getActionCountWithCurrentBaseAction.query({
+        funnelId,
+        baseActionName: elem,
+        stepName: firstStepName,
+      });
+    }),
+  );
 };
 
-export const FunnelResultsTemplate = [
+export const funnelResultsTemplate = [
   {
     name: "Total Outreach",
     function: "getTotalOfStepByResultsBase",
-    firstStep: "outreach",
-    secondStep: "outreach",
+    firstStep: "Lead Generation",
+    secondStep: "Lead Generation",
   },
   {
-    name: "Outreach vs Prospects",
+    name: "Lead Generation vs Prospects",
     function: "getStepVsStep",
-    baseStep: "outreach",
-    firstStep: "outreach",
+    baseStep: "Lead Generation",
+    firstStep: "Lead Generation",
     secondStep: "prospect",
   },
   {
     name: "reschedule count",
     function: "getStatusTotalProspectStage",
     stage: "reschedule",
-    firstStep: "outreach",
+    firstStep: "Lead Generation",
     secondStep: "prospect",
   },
   {
     name: "reschedule rate",
     function: "getStatusPercentageOfStage",
     stage: "reschedule",
-    firstStep: "outreach",
+    firstStep: "Lead Generation",
     secondStep: "prospect",
   },
   {
     name: "no show count",
     function: "getStatusTotalProspectStage",
     stage: "reschedule",
-    firstStep: "outreach",
+    firstStep: "Lead Generation",
     secondStep: "prospect",
   },
   {
     name: "no show rate",
     function: "getStatusPercentageOfStage",
     stage: "no show",
-    firstStep: "outreach",
+    firstStep: "Lead Generation",
     secondStep: "prospect",
   },
   {
     name: "Sales call booked count",
     function: "getStatusTotalProspectStage",
     stage: "sale booked",
-    firstStep: "outreach",
+    firstStep: "Lead Generation",
     secondStep: "prospect",
   },
   {
     name: "sales call booked rate",
     function: "getStatusPercentageOfStage",
     stage: "sale booked",
-    firstStep: "outreach",
+    firstStep: "Lead Generation",
     secondStep: "prospect",
   },
   {
     name: "Total follow up",
     function: "getTotalOfStepByResultsBase",
-    firstStep: "outreach",
+    firstStep: "Lead Generation",
     secondStep: "prospect",
   },
   {
     name: "Sales call no show count",
     function: "getStatusTotalProspectStage",
     stage: "no show",
-    firstStep: "outreach",
+    firstStep: "Lead Generation",
     secondStep: "sale",
   },
   {
     name: "Sales call no show rate",
     function: "getStatusPercentageOfStage",
     stage: "no show",
-    firstStep: "outreach",
+    firstStep: "Lead Generation",
     secondStep: "sale",
   },
   {
     name: "Sales call shows",
     function: "getStatusTotalProspectStage",
     stage: "show",
-    firstStep: "outreach",
+    firstStep: "Lead Generation",
     secondStep: "sale",
   },
   {
     name: "Sales call show rate",
     function: "getStatusPercentageOfStage",
     stage: "show",
-    firstStep: "outreach",
+    firstStep: "Lead Generation",
     secondStep: "sale",
   },
   {
-    name: "Sales vs Outreach",
+    name: "Sales vs Lead Generation",
     function: "getStepVsStep",
-    baseStep: "outreach",
+    baseStep: "Lead Generation",
     firstStep: "prospect",
     secondStep: "sale",
   },
@@ -267,46 +276,46 @@ export const FunnelResultsTemplate = [
     name: "Offers bounced on price",
     function: "getStatusTotalProspectStage",
     stage: "bounced on price",
-    firstStep: "outreach",
+    firstStep: "Lead Generation",
     secondStep: "offer",
   },
   {
     name: "Percent of offers bounced on price",
     function: "getStatusPercentageOfStage",
     stage: "bounced on price",
-    firstStep: "outreach",
+    firstStep: "Lead Generation",
     secondStep: "offer",
   },
   {
     name: "Offers bounced on terms",
     function: "getStatusTotalProspectStage",
     stage: "bounced on terms",
-    firstStep: "outreach",
+    firstStep: "Lead Generation",
     secondStep: "offer",
   },
   {
     name: "Percent of offers bounced on terms",
     function: "getStatusPercentageOfStage",
     stage: "bounced on terms",
-    firstStep: "outreach",
+    firstStep: "Lead Generation",
     secondStep: "offer",
   },
   {
     name: "Offers closed",
     function: "getStatusTotalProspectStage",
     stage: "close",
-    firstStep: "outreach",
+    firstStep: "Lead Generation",
     secondStep: "offer",
   },
   {
     name: "Percent of offers closed",
     function: "getStatusPercentageOfStage",
     stage: "close",
-    firstStep: "outreach",
+    firstStep: "Lead Generation",
     secondStep: "offer",
   },
 ];
-
+/*
 const getActionStatusCount = (
   funnel: Funnel,
   firstStepName: string,
@@ -326,6 +335,7 @@ const getActionStatusCount = (
     }).length;
   });
 };
+*/
 
 const getActionStatusPercentage = (
   funnel: Funnel,
@@ -354,53 +364,60 @@ const getActionStatusPercentage = (
   });
 };
 
-export type funnelResultsTemplateType = typeof FunnelResultsTemplate;
-const renderFunnelRow = (
-  funnel: Funnel,
+export type funnelResultsTemplateType = typeof funnelResultsTemplate;
+const renderFunnelRow = async (
+  funnelId: number,
   FunnelRowTemplateItem: funnelResultsTemplateType[number],
+  funnelHeaders: string[],
 ) => {
   switch (FunnelRowTemplateItem.function) {
     case "getTotalOfStepByResultsBase":
       return getTotalOfStepByResultsBase(
-        funnel,
+        funnelId,
         FunnelRowTemplateItem.firstStep,
-        FunnelRowTemplateItem.secondStep,
+        funnelHeaders,
       );
     case "getStepVsStep":
       return getStepVsStep(
-        funnel,
+        funnelId,
+        funnelHeaders,
         FunnelRowTemplateItem.baseStep!,
         FunnelRowTemplateItem.firstStep,
         FunnelRowTemplateItem.secondStep,
       );
     case "getStatusTotalProspectStage":
-      return getActionStatusCount(
-        funnel,
-        FunnelRowTemplateItem.firstStep,
-        FunnelRowTemplateItem.secondStep,
-        FunnelRowTemplateItem.stage!,
-      );
+      return api.action.getActionStatusCount.query({
+        funnelId,
+        firstStepName: FunnelRowTemplateItem.firstStep,
+        secondStepName: FunnelRowTemplateItem.secondStep,
+        statusName: FunnelRowTemplateItem.stage!,
+      });
     case "getStatusPercentageOfStage":
-      return getActionStatusPercentage(
-        funnel,
-        FunnelRowTemplateItem.firstStep,
-        FunnelRowTemplateItem.secondStep,
-        FunnelRowTemplateItem.stage!,
-      );
+      return api.action.getActionStatusCount.query({
+        funnelId,
+        firstStepName: FunnelRowTemplateItem.firstStep,
+        secondStepName: FunnelRowTemplateItem.secondStep,
+        statusName: FunnelRowTemplateItem.stage!,
+      });
     case "getPricePercentageByInStepByParent":
-      return getPricePercentageByInStepByParent(
-        funnel,
-        FunnelRowTemplateItem.firstStep,
-        FunnelRowTemplateItem.secondStep,
-      );
+      return api.action.getPricePercentageByInStepByParent.query({
+        funnelId,
+        firstStepName: FunnelRowTemplateItem.firstStep,
+        secondStepName: FunnelRowTemplateItem.secondStep,
+      });
   }
 };
 
-const renderFunnelRowWithName = (
-  funnel: Funnel,
+const renderFunnelRowWithName = async (
+  funnelId: number,
   funnelTemplateItem: funnelResultsTemplateType[number],
+  funnelHeaders: string[],
 ) => {
-  const cells = renderFunnelRow(funnel, funnelTemplateItem);
+  const cells = await renderFunnelRow(
+    funnelId,
+    funnelTemplateItem,
+    funnelHeaders,
+  );
   return { name: funnelTemplateItem.name, cells };
 };
 /*
@@ -448,17 +465,26 @@ const getPricePercentageByInStepByParent = (
   return result;
 };
 
-export const  getFunnelResults = async(
-  funnel: Funnel,
-  FunnelResultsTemplate: funnelResultsTemplateType,
-  funnelName:string,
-  teamId:number
+export const getFunnelResults = async (
+  funnelId: number | undefined,
+  funnelResultsTemplate: funnelResultsTemplateType,
+  slug: string,
+  teamId: number,
 ) => {
-  const funnelTemplateName= await api.funnelTemplate.getHeaders.query({funnelName, teamId, headerIndex:0})
- 
-  const funnelHeaders = getFunnelHeaders(funnel, "outreach");
-  const funnelRows = FunnelResultsTemplate.map((template) => {
-    return renderFunnelRowWithName(funnel, template);
+  if (!funnelId) return { funnelHeaders: [], funnelRows: [] };
+  const funnelTemplateHeaders = await api.funnelTemplate.getHeaders.query({
+    slug,
+    teamId,
+    headerIndex: 0,
   });
+  const funnelHeaders =
+    funnelTemplateHeaders?.map((header) => {
+      return header.name;
+    }) ?? [];
+  const funnelRows = await Promise.all(
+    funnelResultsTemplate.map(async (template) => {
+      return await renderFunnelRowWithName(funnelId, template, funnelHeaders);
+    }),
+  );
   return { funnelHeaders, funnelRows };
 };

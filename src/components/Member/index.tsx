@@ -1,15 +1,14 @@
 "use client";
 import Step from "~/components/Member/Step";
-import { type FunnelTemplateType } from "~/server/db/funnel";
-import type { Step as StepType } from "~/components/Member/Step/types";
+import { type FunnelTemplateType } from "~/server/db/static";
 
 const Member = ({ funnelTemplate }: { funnelTemplate: FunnelTemplateType }) => {
   return (
     <div className=" flex flex-col gap-8">
       {funnelTemplate.stepTemplates.map((templateStep, index) => {
         const canHaveParent = index !== 0;
-        const parent = index === 0 ? {} : funnelTemplate.stepTemplates[0];
-        console.log(parent, "parent");
+        const parent = funnelTemplate.stepTemplates[0];
+        const templateStepWithIndex = { ...templateStep, index };
 
         if (templateStep === undefined) return null;
         return (
@@ -17,8 +16,8 @@ const Member = ({ funnelTemplate }: { funnelTemplate: FunnelTemplateType }) => {
             <ul>
               <Step
                 canHaveParent={canHaveParent}
-                templateStep={templateStep}
-                parent={parent as StepType}
+                templateStep={templateStepWithIndex}
+                parent={parent}
               />
             </ul>
           </div>

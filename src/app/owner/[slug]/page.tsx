@@ -2,22 +2,20 @@
 import { api } from "~/trpc/server";
 import {
   getFunnelResults,
-  FunnelResultsTemplate,
+  funnelResultsTemplate,
 } from "../../../server/db/funnel";
-import { funnel } from "~/server/db/static";
-
-const Owner = async ({
-  params: { funnelName },
-}: {
-  params: { funnelName: string };
-}) => {
+import type { RouterOutputs } from "~/trpc/shared";
+export type FetchedFunnel =
+  | NonNullable<RouterOutputs["funnel"]["get"]>["stepTemplates"]
+  | undefined;
+const Owner = async ({ params: { slug } }: { params: { slug: string } }) => {
   const teamResponse = await api.team.getUserTeams.query(undefined);
   const teamId = teamResponse?.[0]?.team?.id as unknown as number;
-
+  const funnel = await api.funnel.get.query({ teamId, slug });
   const { funnelHeaders, funnelRows } = await getFunnelResults(
-    funnel,
-    FunnelResultsTemplate,
-    funnelName,
+    funnel?.id,
+    funnelResultsTemplate,
+    slug,
     teamId,
   );
   return (
@@ -27,7 +25,11 @@ const Owner = async ({
           <td></td>
           {funnelHeaders.map((header) => {
             const key = `${header}ownerheader`;
-            return <th key={key}>{header}</th>;
+            return (
+              <th key={key} className="px-4">
+                {header}
+              </th>
+            );
           })}
         </tr>
       </thead>
@@ -42,7 +44,11 @@ const Owner = async ({
                 <td>{row.name}</td>
                 {row?.cells?.map((cell, index) => {
                   const key = `${row.name}${index}ownerbody`;
-                  return <td key={key}>{cell?.toFixed()}</td>;
+                  return (
+                    <td className="px-4" key={key}>
+                      {cell?.toFixed()}
+                    </td>
+                  );
                 })}
               </tr>
             );

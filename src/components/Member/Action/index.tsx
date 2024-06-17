@@ -4,7 +4,7 @@ import Row from "./Row";
 import {
   type TemplateActionType,
   type TemplateStepType,
-} from "~/server/db/funnel";
+} from "~/server/db/static";
 
 const Action = ({
   templateAction,

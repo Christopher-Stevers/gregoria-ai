@@ -1,4 +1,4 @@
-import { type FunnelTemplateType } from "~/server/db/funnel";
+import { type FunnelTemplateType } from "~/server/db/static";
 import { openAiClient } from "./openAiClient";
 import { sleep } from "~/lib/index";
 import {
@@ -8,7 +8,7 @@ import {
 } from "openai/resources/beta/threads/messages/messages.mjs";
 import { FunnelTemplateTypeValidator } from "~/server/api/routers/ai";
 import { funnelTemplate } from "./functionTemplate";
-export type ChatMessage = {
+export type ChatMessageType = {
   role: "user" | "assistant";
   content: Omit<Text, "annotations">;
 };
@@ -112,7 +112,7 @@ const createChatCompletion = async ({
           };
         });
     })
-    .flat() as ChatMessage[];
+    .flat() as ChatMessageType[];
   return {
     newFunnelTemplate,
     threadId,

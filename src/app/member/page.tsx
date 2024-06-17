@@ -16,7 +16,7 @@ const Page = async () => {
       <ul>
         {teamFunnels.map((funnel) => (
           <li key={funnel.id}>
-            <Link href={`/member/${funnel.name}`}>{funnel.name}</Link>
+            <Link href={`/member/${funnel.slug}`}>{funnel.name}</Link>
           </li>
         ))}
       </ul>

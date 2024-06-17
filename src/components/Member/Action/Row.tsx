@@ -8,7 +8,6 @@ import {
 const Row = ({
   templateAction,
   templateStep,
-
   canHaveParent,
   parent,
 }: {
@@ -19,13 +18,14 @@ const Row = ({
 }) => {
   return (
     <tr>
-      {templateAction.statusTemplates.map((templateStatus) => {
+      {templateAction.statusTemplates.map((templateStatus, index) => {
+        const templateStatusWithIndex = { ...templateStatus, index };
         const key = `${templateStatus.name}${templateAction.name}header`;
         return (
           <Cell
             parent={parent}
             canHaveParent={canHaveParent}
-            templateStatus={templateStatus}
+            templateStatus={templateStatusWithIndex}
             templateAction={templateAction}
             templateStep={templateStep}
             key={key}

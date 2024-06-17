@@ -1,7 +1,7 @@
 "use client";
 import { FolderArrowDownIcon } from "@heroicons/react/24/solid";
 import { useTeam } from "~/providers/TeamProvider";
-import type { FunnelTemplateType } from "~/server/db/funnel";
+import type { FunnelTemplateType } from "~/server/db/static";
 import { api } from "~/trpc/react";
 
 const SaveFunnel = ({

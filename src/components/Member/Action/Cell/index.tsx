@@ -10,32 +10,55 @@ import { useTeam } from "~/providers/TeamProvider";
 import { api } from "~/trpc/react";
 type TemplateStatusType = TemplateActionType["statusTemplates"][0];
 
+const getMockCellIndex = (
+  actionIndex: number,
+  stepIndex: number,
+  statusIndex: number,
+) => {
+  return (actionIndex + 1) * 100 + (stepIndex + 1) * 10 + (statusIndex + 1);
+};
+
 const Cell = ({
   templateStatus,
+  templateAction,
+  templateStep,
   canHaveParent,
   parent,
 }: {
   templateStatus: TemplateStatusType;
+  templateAction: TemplateActionType;
+  templateStep: TemplateStepType;
   canHaveParent: boolean;
-  parent?: TemplateStepType & { id: number };
+  parent?: TemplateStepType;
 }) => {
   const { teamId, userId } = useTeam();
   const { isLive } = useFunnel();
-
+  const statusTemplateId = !isLive
+    ? getMockCellIndex(
+        templateStatus.index!,
+        templateAction.index!,
+        templateStep.index!,
+      )
+    : templateStatus.id;
   const { data: statusCount, isLoading } = api.status.get.useQuery(
     {
-      statusTemplateId: templateStatus.id!,
+      statusTemplateId,
       teamId,
       userId,
+      isLive,
     },
     { initialData: 0 },
   );
+
   const utils = api.useUtils();
   const setStatefulCount = (value: number) => {
+    console.log("statusTemplateId", statusTemplateId);
     utils.status.get.setData(
-      { statusTemplateId: templateStatus.id!, teamId, userId },
+      { statusTemplateId, teamId, userId, isLive },
       value,
     );
+
+    console.log("newStatusCount", value);
   };
 
   const { mutate } = api.status.create.useMutation();
@@ -57,7 +80,7 @@ const Cell = ({
     },
   ) => {
     const valChange = val - (statusCount ?? 0);
-    setStatefulCount(statusCount);
+    setStatefulCount(val);
     if (isLive && statusTemplateId) {
       mutate({
         teamId,
@@ -85,9 +108,7 @@ const Cell = ({
   };
   const handleOneDown = () => {
     const newStatusCount = statusCount - 1;
-    if (newStatusCount) {
-      handleEditCell(newStatusCount, editingOptions).catch(console.error);
-    }
+    handleEditCell(newStatusCount, editingOptions).catch(console.error);
   };
 
   const items =
@@ -101,7 +122,7 @@ const Cell = ({
         },
       };
     }) ?? [];
-
+  console.log("status count", statusCount);
   return (
     <td
       key={templateStatus.name.concat("row")}
@@ -129,7 +150,7 @@ const Cell = ({
             ) : (
               <Input
                 className="w-12 bg-transparent"
-                value={statusCount?.toString() ?? ""}
+                value={statusCount.toString()}
                 setValue={(val) => {
                   handleEditCell(parseInt(val, 10), editingOptions).catch(
                     console.error,
