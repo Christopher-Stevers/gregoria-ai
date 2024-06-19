@@ -41,6 +41,7 @@ const getFunnelHeaders = (funnel: Funnel, firstStepName: string) => {
     return action.name;
   });
 };
+
 const getStepVsStep = (
   funnelId: number,
   funnelHeaders: string[],
