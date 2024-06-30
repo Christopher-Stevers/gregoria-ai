@@ -113,6 +113,7 @@ const createChatCompletion = async ({
         });
     })
     .flat() as ChatMessageType[];
+    console.log(newFunnelTemplate, "new funnel")
   return {
     newFunnelTemplate,
     threadId,
