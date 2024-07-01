@@ -1,6 +1,8 @@
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { z } from "zod";
 import chatCompletion from "~/server/ai/helpers/chatCompletion";
+import { createResultRow } from "~/server/ai/helpers/resultRowCreation";
+import { runResultTemplateCompletion } from "~/server/ai/helpers/runResultTemplateCompletion";
 
 const TemplateActionType = z.object({
   name: z.string(),
@@ -17,7 +19,7 @@ export const FunnelTemplateTypeValidator = z.object({
 });
 
 export const aiRouter = createTRPCRouter({
-  getText: protectedProcedure
+  generateMemberTemplate: protectedProcedure
     .input(
       z.object({
         prompt: z.string(),
@@ -35,6 +37,7 @@ export const aiRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input }) => {
+      console.log(input, "my input")
       const { prompt, threadId, runId, userName } = input;
       const currentChatHistoryLength = input.currentChatHistory.length;
 
@@ -57,5 +60,19 @@ export const aiRouter = createTRPCRouter({
         ...result,
         content: [...input.currentChatHistory, ...newChatHistory],
       };
+    }),
+    generateOwnerTemplateRow: protectedProcedure
+    .input(z.object({
+      memberTemplate : FunnelTemplateTypeValidator,
+      prompt: z.string(),
+    }))
+    .mutation(async ({
+      input
+    })=>{  
+      const {memberTemplate, prompt} = input
+const gptFunction =  createResultRow(memberTemplate)
+const result = await runResultTemplateCompletion(gptFunction, prompt)
+
+return result;
     }),
 });

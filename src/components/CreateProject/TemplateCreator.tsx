@@ -6,19 +6,9 @@ import ChatMessages from "./ChatMessages";
 import MemberProvider from "~/providers/MemberProvider";
 import Member from "../Member";
 import { StyledInput } from "../base/input";
+import OwnerProvider from "../Owner/OwnerProvider";
+import Owner from "../Owner";
 
-const OwnerProvider = ({
-  isLive,
-  children,
-}: {
-  isLive: boolean;
-  children: React.ReactNode;
-}) => {
-  return <>{children}</>;
-};
-const Owner = ({ ownerTemplate }: { ownerTemplate: null }) => {
-  return <div>Currently showing sample data</div>;
-};
 const TemplateCreator = ({
   funnelTemplate,
   chatHistory,
@@ -56,12 +46,6 @@ const TemplateCreator = ({
           <MemberProvider isLive={false}>
             <Member funnelTemplate={funnelTemplate} />
           </MemberProvider>
-        )}
-
-        {ownerTemplate == null && stage === "owner" && (
-          <OwnerProvider isLive={false}>
-            <Owner ownerTemplate={ownerTemplate} />
-          </OwnerProvider>
         )}
       </div>
     </div>

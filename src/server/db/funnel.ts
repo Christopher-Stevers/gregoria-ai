@@ -176,6 +176,7 @@ const getTotalOfStepByResultsBase = async (
   );
 };
 
+
 export const funnelResultsTemplate = [
   {
     name: "Total Outreach",

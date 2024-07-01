@@ -8,10 +8,14 @@ import { getSession } from "next-auth/react";
 import SaveFunnel from "~/components/CreateProject/SaveFunnel";
 import { useTeam } from "~/providers/TeamProvider";
 import {
+  ResultsTemplateRow,
   funnelTemplate as newFunctionTemplate,
   type FunnelTemplateType,
 } from "~/server/db/static";
 import TemplateCreator from "~/components/CreateProject/TemplateCreator";
+import { Result } from "drizzle-orm/sqlite-core";
+import OwnerProvider from "~/components/Owner/OwnerProvider";
+import Owner from "~/components/Owner";
 /*
 const StageSelector = ({
   setStage,
@@ -40,17 +44,23 @@ const StageSelector = ({
   );
 };*/
 
-const CreateProject = () => {
+const CreateProject = ({ params: { slug } }: { params: { slug: string } }) => {
   const { teamId } = useTeam();
-  const [doOnce, setDoOnce] = useState(true);
-  const [funnelTemplate, setFunnelTemplate] =
-    useState<FunnelTemplateType | null>(newFunctionTemplate);
+
+  const { data: funnelTemplate } = api.funnelTemplate.get.useQuery({
+    teamId,
+    slug,
+    includeStatuses: true,
+  });
+  console.log(funnelTemplate);
   const [promptText, setPromptText] = useState("");
-  const stage = "member";
-  const [chatHistory, setChatHistory] = useState<ChatMessageType[]>([]);
-  const [threadId, setThreadId] = useState<string>("");
+  const stage = "owner";
+
   const { data: teamFunnelCount } =
     api.funnelTemplate.getTeamFunnelCount.useQuery({ teamId });
+  const [resultsTemplate, setResultsTemplate] = useState<
+    ResultsTemplateRow[] | null
+  >(null);
   const [funnelName, setFunnelName] = useState(
     teamFunnelCount !== undefined ? "loopy" : "",
   );
@@ -61,24 +71,13 @@ const CreateProject = () => {
       setFunnelName(`Funnel Template ${numCount + 1}`);
     }
   }, [teamFunnelCount, funnelName, setFunnelName]);
-  const { mutate } = api.ai.generateMemberTemplate.useMutation({
-    onSuccess: (data) => {
-      if (data.content) {
-        setThreadId(data.threadId);
-        setChatHistory(data.content);
-        if (
-          data.newFunnelTemplate &&
-          data.newFunnelTemplate?.stepTemplates.length > 0
-        ) {
-          setFunnelTemplate(data.newFunnelTemplate);
-        }
-      }
-    },
-  });
 
   const { mutate: generateOwnerTemplate } =
     api.ai.generateOwnerTemplateRow.useMutation({
       onSuccess: (data) => {
+        setResultsTemplate(
+          data.functionResponses as unknown as ResultsTemplateRow[],
+        );
         console.log(data.functionResponses);
       },
     });
@@ -87,38 +86,13 @@ const CreateProject = () => {
     setPromptText(value);
   };
   const handleEnter = async (value: string) => {
-    switch (stage) {
-      case "member":
-        {
-          const user = await getSession();
-          const name = user?.user?.name;
-          const newChatHistory: ChatMessageType[] = [
-            ...chatHistory,
-            { content: { value }, role: "user" },
-          ];
-          setChatHistory(newChatHistory);
-          mutate({
-            prompt: value,
-            threadId,
-            userName: name ?? "",
-            currentChatHistory: chatHistory,
-          });
-
-          setPromptText("");
-        }
-        break;
-      /*   case "owner": {
-        const user = await getSession();
-
-        if (funnelTemplate) {
-          generateOwnerTemplate({
-            memberTemplate: funnelTemplate,
-            prompt: value,
-          });
-        }
-      }*/
+    if (funnelTemplate) {
+      generateOwnerTemplate({
+        memberTemplate: funnelTemplate,
+        prompt: value,
+      });
     }
-  };
+  }; /*
   useEffect(() => {
     if (doOnce) {
       const value =
@@ -136,16 +110,14 @@ const CreateProject = () => {
       setChatHistory(newChatHistory);
       setDoOnce(false);
     }
-  }, [mutate, doOnce, setDoOnce, threadId]);
+  }, [ doOnce, setDoOnce, threadId]);*/
   return (
     <div className="flex w-full flex-col gap-4">
-      <TemplateCreator
-        stage={stage}
-        setFunnelName={setFunnelName}
-        chatHistory={chatHistory}
-        funnelName={funnelName}
-        funnelTemplate={funnelTemplate}
-      />
+      {funnelTemplate && resultsTemplate && stage === "owner" && (
+        <OwnerProvider>
+          <Owner ownerTemplate={{ name: "default", resultsTemplate }} />
+        </OwnerProvider>
+      )}
       <div className="fixed bottom-0 flex w-[calc(100%-144px)] gap-4 p-4">
         <StyledInput
           className="bg-accent w-full border-main text-text"
@@ -153,13 +125,6 @@ const CreateProject = () => {
           setValue={setValue}
           onEnter={() => handleEnter(promptText)}
         />
-        {funnelTemplate && (
-          <SaveFunnel
-            funnelName={funnelName}
-            threadId={threadId}
-            funnelTemplate={funnelTemplate}
-          />
-        )}
       </div>
     </div>
   );

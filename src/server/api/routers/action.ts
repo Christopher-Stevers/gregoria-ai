@@ -1,8 +1,7 @@
 import { statuses } from "~/server/db/schema";
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure, teamProcedure } from "../trpc";
+import { createTRPCRouter, publicProcedure } from "../trpc";
 import { count } from "drizzle-orm";
-import { funnel } from "~/server/db/static";
 
 export const actionRouter = createTRPCRouter({
   getActionCountWithCurrentBaseAction: publicProcedure

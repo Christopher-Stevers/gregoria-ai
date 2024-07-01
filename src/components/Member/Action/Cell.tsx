@@ -6,8 +6,8 @@ import {
   type TemplateActionType,
   type TemplateStepType,
   funnel,
-} from "~/server/db/funnel";
-type TemplateStatusType = TemplateActionType["templateStatuses"][0];
+} from "~/server/db/static";
+type TemplateStatusType = TemplateActionType["statusTemplates"][0];
 
 const Cell = ({
   templateStatus,
