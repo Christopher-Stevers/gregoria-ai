@@ -112,19 +112,26 @@ export const funnelTemplateRouter = createTRPCRouter({
       return "success";
     }),
   get: teamProcedure
-    .input(z.object({ slug: z.string(), teamId: z.number(), includeStatuses: z.boolean().optional() }))
+    .input(
+      z.object({
+        slug: z.string(),
+        teamId: z.number(),
+        includeStatuses: z.boolean().optional(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
-      const includeStatusesObject = input.includeStatuses ? {with:{statuses: true}} : true;
+      const includeStatusesObject = input.includeStatuses
+        ? { with: { statuses: true } }
+        : true;
       const result = await ctx.db.query.funnelTemplates
         .findFirst({
           with: {
             stepTemplates: {
               with: {
                 actionTemplates: {
-                 with: {
-                  statusTemplates:  includeStatusesObject as true
-                  
-                 }
+                  with: {
+                    statusTemplates: includeStatusesObject as true,
+                  },
                 },
               },
             },

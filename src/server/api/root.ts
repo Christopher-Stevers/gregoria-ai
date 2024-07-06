@@ -5,6 +5,7 @@ import { funnelTemplateRouter } from "./routers/funnelTemplate";
 import { statusRouter } from "./routers/status";
 import { funnelRouter } from "./routers/funnel";
 import { actionRouter } from "./routers/action";
+import { ownerTemplateRouter } from "./routers/ownerTemplate";
 
 /**
  * This is the primary router for your server.
@@ -18,6 +19,8 @@ export const appRouter = createTRPCRouter({
   funnel: funnelRouter,
   status: statusRouter,
   action: actionRouter,
+
+  ownerTemplate: ownerTemplateRouter,
 });
 
 // export type definition of API

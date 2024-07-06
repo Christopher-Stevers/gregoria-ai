@@ -18,6 +18,16 @@ export const FunnelTemplateTypeValidator = z.object({
   stepTemplates: z.array(TemplateStepType),
 });
 
+export const ViewTemplateTypeValidator = z.array(
+  z.object({
+    name: z.string(),
+    baseStep: z.string(),
+    firstStep: z.string(),
+    function: z.string(),
+    secondStep: z.string(),
+  }),
+);
+
 export const aiRouter = createTRPCRouter({
   generateMemberTemplate: protectedProcedure
     .input(
@@ -37,7 +47,7 @@ export const aiRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input }) => {
-      console.log(input, "my input")
+      console.log(input, "my input");
       const { prompt, threadId, runId, userName } = input;
       const currentChatHistoryLength = input.currentChatHistory.length;
 
@@ -61,18 +71,23 @@ export const aiRouter = createTRPCRouter({
         content: [...input.currentChatHistory, ...newChatHistory],
       };
     }),
-    generateOwnerTemplateRow: protectedProcedure
-    .input(z.object({
-      memberTemplate : FunnelTemplateTypeValidator,
-      prompt: z.string(),
-    }))
-    .mutation(async ({
-      input
-    })=>{  
-      const {memberTemplate, prompt} = input
-const gptFunction =  createResultRow(memberTemplate)
-const result = await runResultTemplateCompletion(gptFunction, prompt)
+  generateOwnerTemplateRow: protectedProcedure
+    .input(
+      z.object({
+        memberTemplate: FunnelTemplateTypeValidator,
+        ownerTemplate: ViewTemplateTypeValidator.nullable(),
+        prompt: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { memberTemplate, prompt } = input;
+      const extendedPrompt = `Can you help my applicatoin create a marketing funnel view based on my unique needs as expressed here, ${prompt}, ${input.ownerTemplate && `this is what they currently have and probably want to extend it ${JSON.stringify(input.ownerTemplate)} Make the text portion of your reply as though you are replying to the users prompt: ${input.prompt}`}?`;
+      const gptFunction = createResultRow(memberTemplate);
+      const result = await runResultTemplateCompletion(
+        gptFunction,
+        extendedPrompt,
+      );
 
-return result;
+      return result;
     }),
 });

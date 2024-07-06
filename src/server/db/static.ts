@@ -215,11 +215,11 @@ export type FunnelTemplateType = {
   id?: number;
 };
 
-
-
-export type  ResultsTemplateRow={
+export type ResultsTemplateRow = {
   name: string;
   function: string;
   firstStep: string;
   secondStep: string;
-}
+  baseStep: string;
+  stage: string;
+};

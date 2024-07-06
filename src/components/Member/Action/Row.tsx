@@ -1,4 +1,4 @@
-import Cell from "./Cell";
+import Cell from "./Cell/index";
 import {
   funnel,
   type TemplateActionType,

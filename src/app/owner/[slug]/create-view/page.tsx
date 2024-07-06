@@ -52,7 +52,6 @@ const CreateProject = ({ params: { slug } }: { params: { slug: string } }) => {
     slug,
     includeStatuses: true,
   });
-  console.log(funnelTemplate);
   const [promptText, setPromptText] = useState("");
   const stage = "owner";
 
@@ -78,7 +77,7 @@ const CreateProject = ({ params: { slug } }: { params: { slug: string } }) => {
         setResultsTemplate(
           data.functionResponses as unknown as ResultsTemplateRow[],
         );
-        console.log(data.functionResponses);
+        console.log("results", data.functionResponses);
       },
     });
 
@@ -89,6 +88,7 @@ const CreateProject = ({ params: { slug } }: { params: { slug: string } }) => {
     if (funnelTemplate) {
       generateOwnerTemplate({
         memberTemplate: funnelTemplate,
+        ownerTemplate: resultsTemplate,
         prompt: value,
       });
     }
@@ -115,7 +115,11 @@ const CreateProject = ({ params: { slug } }: { params: { slug: string } }) => {
     <div className="flex w-full flex-col gap-4">
       {funnelTemplate && resultsTemplate && stage === "owner" && (
         <OwnerProvider>
-          <Owner ownerTemplate={{ name: "default", resultsTemplate }} />
+          <Owner
+            funnelId={funnelTemplate.id}
+            slug={slug}
+            ownerTemplate={{ name: "default", resultsTemplate }}
+          />
         </OwnerProvider>
       )}
       <div className="fixed bottom-0 flex w-[calc(100%-144px)] gap-4 p-4">
