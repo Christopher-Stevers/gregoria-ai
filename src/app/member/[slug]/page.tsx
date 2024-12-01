@@ -1,14 +1,16 @@
-"use client";
 import Member from "~/components/Member";
-import { api } from "~/trpc/react";
-import { useTeam } from "~/providers/TeamProvider";
+import { api } from "~/trpc/server";
 import MemberProvider from "~/providers/MemberProvider";
+import { getServersideTeam } from "~/providers/GetServersideTeam";
 
-const MemberPage = ({ params: { slug } }: { params: { slug: string } }) => {
-  const { teamId } = useTeam();
-  console.log("teamId", teamId, "slug", slug);
-  const { data: funnelTemplate } = api.funnelTemplate.get.useQuery({
-    teamId,
+const MemberPage = async ({
+  params: { slug },
+}: {
+  params: { slug: string };
+}) => {
+  const team = await getServersideTeam();
+  const funnelTemplate = await api.funnelTemplate.get.query({
+    teamId: team.id,
     slug,
   });
 

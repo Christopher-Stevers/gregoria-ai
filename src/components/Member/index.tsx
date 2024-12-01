@@ -1,4 +1,3 @@
-"use client";
 import Step from "~/components/Member/Step";
 import { type FunnelTemplateType } from "~/server/db/static";
 

@@ -16,6 +16,7 @@ import TemplateCreator from "~/components/CreateProject/TemplateCreator";
 import { Result } from "drizzle-orm/sqlite-core";
 import OwnerProvider from "~/components/Owner/OwnerProvider";
 import Owner from "~/components/Owner";
+import { FolderArrowDownIcon } from "@heroicons/react/24/solid";
 /*
 const StageSelector = ({
   setStage,
@@ -46,6 +47,7 @@ const StageSelector = ({
 
 const CreateProject = ({ params: { slug } }: { params: { slug: string } }) => {
   const { teamId } = useTeam();
+  const [viewName, setViewName] = useState("");
 
   const { data: funnelTemplate } = api.funnelTemplate.get.useQuery({
     teamId,
@@ -111,8 +113,31 @@ const CreateProject = ({ params: { slug } }: { params: { slug: string } }) => {
       setDoOnce(false);
     }
   }, [ doOnce, setDoOnce, threadId]);*/
+  const { mutate: createView } = api.funnelTemplateView.createRow.useMutation();
+  const saveView = async () => {
+    if (funnelTemplate && viewName && resultsTemplate) {
+      createView({
+        name: viewName,
+        teamId: teamId,
+        funnelTemplateId: funnelTemplate.id,
+        rows: resultsTemplate.map((row) => ({
+          name: row.name,
+          function: row.function,
+          baseStep: row.baseStep,
+          firstStep: row.firstStep,
+          secondStep: row.secondStep,
+          stage: row.stage,
+        })),
+      });
+    }
+  };
   return (
     <div className="flex w-full flex-col gap-4">
+      <StyledInput
+        className="bg-accent w-full border-main text-text"
+        value={viewName}
+        setValue={setViewName}
+      />
       {funnelTemplate && resultsTemplate && stage === "owner" && (
         <OwnerProvider>
           <Owner
@@ -129,6 +154,9 @@ const CreateProject = ({ params: { slug } }: { params: { slug: string } }) => {
           setValue={setValue}
           onEnter={() => handleEnter(promptText)}
         />
+        <button onClick={saveView}>
+          <FolderArrowDownIcon className="h-6 w-6" />
+        </button>
       </div>
     </div>
   );

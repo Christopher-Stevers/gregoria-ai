@@ -10,7 +10,9 @@ const ProfileDialog = ({ session }: { session: Session | null }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSignIn = async () => {
+    console.log("signing in");
     await signIn("discord");
+    console.log("signed in");
   };
   const handleCloseModal = () => {
     setIsOpen(false);

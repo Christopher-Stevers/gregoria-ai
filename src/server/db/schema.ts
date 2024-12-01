@@ -108,6 +108,63 @@ export const funnelTemplateRelations = relations(
   funnelTemplates,
   ({ many }) => ({
     stepTemplates: many(stepTemplates),
+    funnelTemplateViews: many(funnelTemplateViews),
+  }),
+);
+export const funnelTemplateViews = createTable(
+  "funnelTemplateView",
+  {
+    id: serial("id").primaryKey(),
+    funnelTemplateId: bigint("funnelTemplateId", { mode: "number" }).notNull(),
+    name: varchar("name", { length: 255 }).notNull(),
+    slug: varchar("slug", { length: 255 }).notNull(),
+  },
+  (ft) => ({
+    funnelTemplateIdIdx: index("funnelTemplateView_funnelTemplateId_idx").on(
+      ft.funnelTemplateId,
+    ),
+  }),
+);
+
+export const funnelTemplateViewRelations = relations(
+  funnelTemplateViews,
+  ({ many, one }) => ({
+    funnelTemplate: one(funnelTemplates, {
+      fields: [funnelTemplateViews.funnelTemplateId],
+      references: [funnelTemplates.id],
+    }),
+    funnelTemplateViewsRows: many(funnelTemplateViewRows),
+  }),
+);
+
+export const funnelTemplateViewRows = createTable(
+  "funnelTemplateViewRow",
+  {
+    id: serial("id").primaryKey(),
+    funnelTemplateViewId: bigint("funnelTemplateViewId", {
+      mode: "number",
+    }).notNull(),
+    name: varchar("name", { length: 255 }).notNull(),
+    baseStep: varchar("baseStep", { length: 255 }),
+    secondStep: varchar("secondStep", { length: 255 }),
+    firstStep: varchar("firstStep", { length: 255 }),
+    stage: varchar("stage", { length: 255 }),
+    index: integer("index").notNull(),
+  },
+  (ft) => ({
+    funnelTemplateViewIdIdx: index(
+      "funnelTemplateViewRow_funnelTemplateViewId_idx",
+    ).on(ft.funnelTemplateViewId),
+  }),
+);
+export const funnelTemplateViewRowsRelations = relations(
+  funnelTemplateViewRows,
+  ({ many, one }) => ({
+    actionTemplates: many(actionTemplates),
+    funnelTemplateView: one(funnelTemplateViews, {
+      fields: [funnelTemplateViewRows.funnelTemplateViewId],
+      references: [funnelTemplateViews.id],
+    }),
   }),
 );
 

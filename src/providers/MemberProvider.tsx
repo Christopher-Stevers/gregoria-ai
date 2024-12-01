@@ -1,3 +1,4 @@
+"use client";
 import { type ReactNode, useMemo, createContext, useContext } from "react";
 export const useFunnel = () => {
   const context = useContext(memberContext);

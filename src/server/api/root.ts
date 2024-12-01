@@ -6,6 +6,7 @@ import { statusRouter } from "./routers/status";
 import { funnelRouter } from "./routers/funnel";
 import { actionRouter } from "./routers/action";
 import { ownerTemplateRouter } from "./routers/ownerTemplate";
+import { funnelTemplateViewRouter } from "./routers/funnelTemplateView";
 
 /**
  * This is the primary router for your server.
@@ -19,7 +20,7 @@ export const appRouter = createTRPCRouter({
   funnel: funnelRouter,
   status: statusRouter,
   action: actionRouter,
-
+  funnelTemplateView: funnelTemplateViewRouter,
   ownerTemplate: ownerTemplateRouter,
 });
 
